@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.book.dao.BookDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.book.entity.Book" id="bookMap">
+        <result property="bookId" column="book_id"/>
+        <result property="categoryCode" column="category_code"/>
+		<result property="categoryName" column="category_name"/>
+        <result property="spaceId" column="space_id"/>
+        <result property="subject" column="subject"/>
+		<result property="introduction" column="introduction"/>
+        <result property="cover" column="cover"/>
+        <result property="bookFile" column="book_file"/>
+        <result property="author" column="author"/>
+        <result property="publisher" column="publisher"/>
+        <result property="publishingYear" column="publishing_year"/>
+        <result property="numberOfIssues" column="number_of_issues"/>
+        <result property="numberOfPages" column="number_of_pages"/>
+        <result property="isbn" column="ISBN"/>
+        <result property="readCount" column="read_count"/>
+        <result property="weight" column="weight"/>
+        <result property="integral" column="integral"/>
+        <result property="featuredYn" column="featured_yn"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateAt" column="update_at"/>
+        <result property="updateBy" column="update_by"/>
+    </resultMap>
+
+	<!-- 可根据自己的需求，是否要使用 -->
+	<resultMap type="xin.xiaoer.modules.mobile.entity.BookListItem" id="bookAPIMap">
+		<result property="bookId" column="book_id"/>
+		<result property="subject" column="subject"/>
+		<result property="cover" column="cover"/>
+	</resultMap>
+
+	<select id="getListItemObject" resultType="xin.xiaoer.modules.mobile.entity.BookListItem">
+		select t.book_id,
+			t.subject,
+			t.author,
+			t.read_count,
+			t.category_code,
+			cat.category_name,
+			file.url AS cover
+		from book t
+		LEFT JOIN sys_file file
+		ON file.upload_id = t.cover
+		LEFT JOIN category cat
+			ON t.category_code = cat.category_code
+		where t.book_id = #{bookId}
+		and t.state = '1'
+	</select>
+
+	<select id="getFeaturedList" resultType="xin.xiaoer.modules.mobile.entity.BookListItem">
+		select book.book_id,
+			book.subject,
+			file.url AS cover
+		from book book
+		LEFT JOIN sys_file file
+		ON file.upload_id = book.cover
+		WHERE book.state = '1'
+		ORDER BY book.weight DESC
+		<if test="limit != null and limit != ''">
+			limit ${limit}
+		</if>
+	</select>
+
+	<select id="getRecentList" resultType="xin.xiaoer.modules.mobile.entity.BookListItem">
+		select book.book_id,
+			book.subject,
+			file.url AS cover
+		from book book
+		LEFT JOIN sys_file file
+		ON file.upload_id = book.cover
+		WHERE book.state = '1'
+		ORDER BY book.create_at DESC
+		<if test="limit != null and limit != ''">
+			limit ${limit}
+		</if>
+	</select>
+
+	<sql id="Field">
+		t.book_id,
+		t.category_code,
+		t.category_name,
+		t.space_id,
+		t.subject,
+		t.introduction,
+		t.author,
+		t.publisher,
+		t.publishing_year,
+		t.number_of_issues,
+		t.number_of_pages,
+		t.ISBN,
+		t.read_count,
+		t.weight,
+		t.integral,
+		t.featured_yn,
+		t.state,
+		t.create_at,
+		t.create_by,
+		t.update_at,
+		t.update_by
+	</sql>
+
+	<select id="get" resultType="xin.xiaoer.modules.book.entity.Book">
+		select * from book where book_id = #{value}
+	</select>
+
+	<select id="getDetail" resultType="xin.xiaoer.modules.book.entity.Book">
+		select <include refid="Field" />,
+			cov.url AS cover,
+			bookFile.url AS book_file
+		from book t
+		LEFT JOIN sys_file cov
+		ON t.cover = cov.upload_id
+		LEFT JOIN sys_file bookFile
+		ON t.book_file = bookFile.upload_id
+		where t.book_id = #{value}
+	</select>
+
+	<select id="getListItemForAPI" resultType="xin.xiaoer.modules.mobile.entity.BookListItem">
+		select t.book_id,
+			t.subject,
+			file.url AS cover
+		from book t
+		LEFT JOIN sys_file file
+		ON file.upload_id = t.cover
+		<include refid="where_clause" />
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by t.${sidx} ${order}
+			</when>
+			<otherwise>
+				order by t.book_id desc
+			</otherwise>
+		</choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<!--新加-->
+	<select id="getMaxList" resultType="xin.xiaoer.modules.mobile.entity.BookListItem">
+		SELECT * FROM (select book.*,
+		cat.upper_code
+		from book book
+		LEFT JOIN category cat
+		ON book.category_code = cat.category_code) t
+		/*WHERE book.state = '1'*/
+		<include refid="where_clause" />
+		ORDER BY t.read_count DESC
+		<if test="limit != null and limit != ''">
+			limit ${limit}
+		</if>
+	</select>
+
+	<select id="getCountForAPI" resultType="int">
+		select count(*)
+		from book t
+		LEFT JOIN sys_file file
+		ON file.upload_id = t.cover
+		<include refid="where_clause" />
+	</select>
+
+	<select id="getPersonalList" resultType="xin.xiaoer.modules.mobile.entity.PersonalBook">
+		select t.*,
+			file.url as cover,
+			file2.url as book_file,
+			cat.category_name
+		from (select bk.book_id,
+				bk.subject,
+				bk.category_code,
+				bk.cover as cover_image,
+				bk.book_file as file_book,
+				bk.author,
+				bk.read_count,
+				bk.number_of_pages,
+				bm.create_at as bookmark_date
+			from book bk, bookmark bm
+			where bk.state = '1'
+			and bk.book_id = bm.book_id
+			and bm.user_id = #{userId}) t
+		LEFT JOIN sys_file file
+		ON t.cover_image = file.upload_id
+		LEFT JOIN sys_file file2
+		ON t.file_book = file2.upload_id
+		LEFT JOIN category cat
+		ON cat.category_code = t.category_code
+		ORDER BY t.bookmark_date DESC
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<select id="getPersonalCount" resultType="int">
+		select count(*) from (select bk.book_id,
+				bk.subject,
+				bk.category_code,
+				bk.cover as cover_image,
+				bk.book_file as file_book,
+				bk.author,
+				bk.read_count,
+				bk.number_of_pages,
+				bm.create_at as bookmark_date
+			from book bk, bookmark bm
+			where bk.state = '1'
+			and bk.book_id = bm.book_id
+			and bm.user_id = #{userId}) t
+		LEFT JOIN sys_file file
+		ON t.cover_image = file.upload_id
+		LEFT JOIN sys_file file2
+		ON t.file_book = file2.upload_id
+		LEFT JOIN category cat
+		ON cat.category_code = t.category_code
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.book.entity.Book">
+		select <include refid="Field" />,
+		       cov.url AS cover,
+		       bookFile.url AS book_file,
+		       sp.space_name
+		from (SELECT book.*,
+			cat.category_name
+			FROM book book
+			LEFT JOIN category cat
+			ON book.category_code = cat.category_code) t
+		LEFT JOIN sys_file cov
+		ON t.cover = cov.upload_id
+		LEFT JOIN sys_file bookFile
+		ON t.book_file = bookFile.upload_id
+		LEFT JOIN space sp
+		ON sp.space_id = t.space_id
+		<include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by book_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from (SELECT book.*,
+			cat.category_name
+			FROM book book
+			LEFT JOIN category cat
+			ON book.category_code = cat.category_code) t
+		<include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="bookId != null and bookId != ''"> and t.book_id = #{bookId} </if>
+    		<if test="bookIdVague != null and bookIdVague != ''"> and t.book_id like concat('%',#{bookIdVague},'%') </if>
+            <if test="categoryCode != null and categoryCode != ''"> and t.category_code = #{categoryCode} </if>
+    		<if test="categoryCodeVague != null and categoryCodeVague != ''"> and t.category_code like concat('%',#{categoryCodeVague},'%') </if>
+            <if test="spaceId != null and spaceId != ''"> and t.space_id = #{spaceId} </if>
+    		<if test="spaceIdVague != null and spaceIdVague != ''"> and t.space_id like concat('%',#{spaceIdVague},'%') </if>
+            <if test="subject != null and subject != ''"> and t.subject = #{subject} </if>
+    		<if test="subjectVague != null and subjectVague != ''"> and t.subject like concat('%',#{subjectVague},'%') </if>
+            <if test="cover != null and cover != ''"> and t.cover = #{cover} </if>
+    		<if test="coverVague != null and coverVague != ''"> and t.cover like concat('%',#{coverVague},'%') </if>
+            <if test="bookFile != null and bookFile != ''"> and t.book_file = #{bookFile} </if>
+    		<if test="bookFileVague != null and bookFileVague != ''"> and t.book_file like concat('%',#{bookFileVague},'%') </if>
+            <if test="author != null and author != ''"> and t.author = #{author} </if>
+    		<if test="authorVague != null and authorVague != ''"> and t.author like concat('%',#{authorVague},'%') </if>
+            <if test="publisher != null and publisher != ''"> and t.publisher = #{publisher} </if>
+    		<if test="publisherVague != null and publisherVague != ''"> and t.publisher like concat('%',#{publisherVague},'%') </if>
+            <if test="publishingYear != null and publishingYear != ''"> and t.publishing_year = #{publishingYear} </if>
+    		<if test="publishingYearVague != null and publishingYearVague != ''"> and t.publishing_year like concat('%',#{publishingYearVague},'%') </if>
+            <if test="numberOfIssues != null and numberOfIssues != ''"> and t.number_of_issues = #{numberOfIssues} </if>
+    		<if test="numberOfIssuesVague != null and numberOfIssuesVague != ''"> and t.number_of_issues like concat('%',#{numberOfIssuesVague},'%') </if>
+            <if test="numberOfPages != null and numberOfPages != ''"> and t.number_of_pages = #{numberOfPages} </if>
+    		<if test="numberOfPagesVague != null and numberOfPagesVague != ''"> and t.number_of_pages like concat('%',#{numberOfPagesVague},'%') </if>
+            <if test="isbn != null and isbn != ''"> and t.ISBN = #{isbn} </if>
+    		<if test="isbnVague != null and isbnVague != ''"> and t.ISBN like concat('%',#{isbnVague},'%') </if>
+            <if test="readCount != null and readCount != ''"> and t.read_count = #{readCount} </if>
+    		<if test="readCountVague != null and readCountVague != ''"> and t.read_count like concat('%',#{readCountVague},'%') </if>
+            <if test="weight != null and weight != ''"> and t.weight = #{weight} </if>
+    		<if test="weightVague != null and weightVague != ''"> and t.weight like concat('%',#{weightVague},'%') </if>
+            <if test="featuredYn != null and featuredYn != ''"> and t.featured_yn = #{featuredYn} </if>
+    		<if test="featuredYnVague != null and featuredYnVague != ''"> and t.featured_yn like concat('%',#{featuredYnVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+    		<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+            <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+    		<if test="createByVague != null and createByVague != ''"> and t.create_by like concat('%',#{createByVague},'%') </if>
+            <if test="updateAt != null and updateAt != ''"> and t.update_at = #{updateAt} </if>
+    		<if test="updateAtVague != null and updateAtVague != ''"> and t.update_at like concat('%',#{updateAtVague},'%') </if>
+            <if test="updateBy != null and updateBy != ''"> and t.update_by = #{updateBy} </if>
+    		<if test="updateByVague != null and updateByVague != ''"> and t.update_by like concat('%',#{updateByVague},'%') </if>
+			/*新加*/
+			<if test="period !=null and period != '' ">and date_sub(CURDATE(), INTERVAL #{period} DAY) &lt;= DATE(t.create_at)</if>
+    		<if test="upperCode != null and upperCode != ''"> and t.upper_code= #{upperCode} </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.book.entity.Book" useGeneratedKeys="true" keyProperty="bookId">
+		insert into book
+		(
+			`category_code`, 
+			`space_id`, 
+			`subject`,
+			`introduction`,
+			`cover`, 
+			`book_file`, 
+			`author`, 
+			`publisher`, 
+			`publishing_year`, 
+			`number_of_issues`, 
+			`number_of_pages`, 
+			`ISBN`, 
+			`read_count`, 
+			`weight`, 
+			`integral`,
+			`featured_yn`,
+			`state`, 
+			`create_at`, 
+			`create_by`, 
+			`update_at`, 
+			`update_by`
+		)
+		values
+		(
+			#{categoryCode}, 
+			#{spaceId}, 
+			#{subject},
+			#{introduction},
+			#{cover}, 
+			#{bookFile}, 
+			#{author}, 
+			#{publisher}, 
+			#{publishingYear}, 
+			#{numberOfIssues}, 
+			#{numberOfPages}, 
+			#{isbn}, 
+			#{readCount}, 
+			#{weight}, 
+			#{integral},
+			#{featuredYn},
+			#{state}, 
+			NOW(),
+			#{createBy}, 
+			NOW(),
+			#{updateBy}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.book.entity.Book">
+		update book 
+		<set>
+			<if test="categoryCode != null">`category_code` = #{categoryCode}, </if>
+			<if test="spaceId != null">`space_id` = #{spaceId}, </if>
+			<if test="subject != null">`subject` = #{subject}, </if>
+			<if test="introduction != null">`introduction` = #{introduction}, </if>
+			<if test="cover != null">`cover` = #{cover}, </if>
+			<if test="bookFile != null">`book_file` = #{bookFile}, </if>
+			<if test="author != null">`author` = #{author}, </if>
+			<if test="publisher != null">`publisher` = #{publisher}, </if>
+			<if test="publishingYear != null">`publishing_year` = #{publishingYear}, </if>
+			<if test="numberOfIssues != null">`number_of_issues` = #{numberOfIssues}, </if>
+			<if test="numberOfPages != null">`number_of_pages` = #{numberOfPages}, </if>
+			<if test="isbn != null">`ISBN` = #{isbn}, </if>
+			<if test="readCount != null and readCount != 0">`read_count` = #{readCount}, </if>
+			<if test="weight != null">`weight` = #{weight}, </if>
+			<if test="integral != null">`integral` = #{integral}, </if>
+			<if test="featuredYn != null">`featured_yn` = #{featuredYn}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}, </if>
+			`update_at` = NOW()
+		</set>
+		where book_id = #{bookId}
+	</update>
+
+	<update id="removeCategoryCode">
+		update book
+		<set>
+			`category_code` = NULL ,
+			`update_at` = NOW()
+		</set>
+		where category_code = #{categoryCode}
+	</update>
+
+	<delete id="delete">
+		delete from book where book_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from book where book_id in 
+		<foreach item="bookId" collection="array" open="(" separator="," close=")">
+			#{bookId}
+		</foreach>
+	</delete>
+
+</mapper>

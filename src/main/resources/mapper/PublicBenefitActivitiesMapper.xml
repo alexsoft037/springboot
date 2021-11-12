@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.publicbenefit.dao.PublicBenefitActivitiesDao">
+
+
+    <resultMap id="publicBenefitActivitiesMap" type="xin.xiaoer.modules.publicbenefit.entity.PublicBenefitActivities">
+        <result property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+    </resultMap>
+
+    <select id="getList" resultMap="publicBenefitActivitiesMap">
+        SELECT
+        p.*
+        FROM
+        public_benefit_activities p
+        WHERE 1=1
+
+        <if test="hot!=null">
+            AND p.hot=#{hot}
+        </if>
+
+        <!--<choose>-->
+            <!--<when test="sidx != null and sidx.trim() != ''">-->
+                <!--order by ${sidx} ${order}-->
+            <!--</when>-->
+            <!--<otherwise>-->
+                <!--order by p.creat_time DESC-->
+            <!--</otherwise>-->
+        <!--</choose>-->
+        <if test="ornew!=null">
+            ORDER BY
+            p.id ${ornew}
+        </if>
+
+        <if test="offset!=null and limit!=null">
+            LIMIT #{offset},
+            #{limit}
+        </if>
+    </select>
+
+    <select id="getCount" resultType="int">
+        SELECT COUNT(*)
+        FROM public_benefit_activities p
+        WHERE 1=1
+        <if test="hot!=null">
+            AND p.hot=#{hot}
+        </if>
+    </select>
+</mapper>

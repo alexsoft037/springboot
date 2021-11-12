@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.classroom.dao.AccountDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.classroom.entity.Account" id="accountMap">
+        <result property="uid" column="uid"/>
+        <result property="pwd" column="pwd"/>
+        <result property="token" column="token"/>
+        <result property="state" column="state"/>
+        <result property="userSig" column="user_sig"/>
+        <result property="registerTime" column="register_time"/>
+        <result property="loginTime" column="login_time"/>
+        <result property="logoutTime" column="logout_time"/>
+        <result property="lastRequestTime" column="last_request_time"/>
+        <result property="currentAppid" column="current_appid"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.classroom.entity.Account">
+		select * from t_account where uid = #{value}
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.classroom.entity.Account">
+		select * from t_account t <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by uid desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from t_account t  <include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="uid != null and uid != ''"> and t.uid = #{uid} </if>
+    		<if test="uidVague != null and uidVague != ''"> and t.uid like concat('%',#{uidVague},'%') </if>
+            <if test="pwd != null and pwd != ''"> and t.pwd = #{pwd} </if>
+    		<if test="pwdVague != null and pwdVague != ''"> and t.pwd like concat('%',#{pwdVague},'%') </if>
+            <if test="token != null and token != ''"> and t.token = #{token} </if>
+    		<if test="tokenVague != null and tokenVague != ''"> and t.token like concat('%',#{tokenVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+    		<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="userSig != null and userSig != ''"> and t.user_sig = #{userSig} </if>
+    		<if test="userSigVague != null and userSigVague != ''"> and t.user_sig like concat('%',#{userSigVague},'%') </if>
+            <if test="registerTime != null and registerTime != ''"> and t.register_time = #{registerTime} </if>
+    		<if test="registerTimeVague != null and registerTimeVague != ''"> and t.register_time like concat('%',#{registerTimeVague},'%') </if>
+            <if test="loginTime != null and loginTime != ''"> and t.login_time = #{loginTime} </if>
+    		<if test="loginTimeVague != null and loginTimeVague != ''"> and t.login_time like concat('%',#{loginTimeVague},'%') </if>
+            <if test="logoutTime != null and logoutTime != ''"> and t.logout_time = #{logoutTime} </if>
+    		<if test="logoutTimeVague != null and logoutTimeVague != ''"> and t.logout_time like concat('%',#{logoutTimeVague},'%') </if>
+            <if test="lastRequestTime != null and lastRequestTime != ''"> and t.last_request_time = #{lastRequestTime} </if>
+    		<if test="lastRequestTimeVague != null and lastRequestTimeVague != ''"> and t.last_request_time like concat('%',#{lastRequestTimeVague},'%') </if>
+            <if test="currentAppid != null and currentAppid != ''"> and t.current_appid = #{currentAppid} </if>
+    		<if test="currentAppidVague != null and currentAppidVague != ''"> and t.current_appid like concat('%',#{currentAppidVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.classroom.entity.Account">
+		insert into t_account
+		(
+			`uid`, 
+			`pwd`, 
+			`token`, 
+			`state`, 
+			`user_sig`, 
+			`register_time`, 
+			`login_time`, 
+			`logout_time`, 
+			`last_request_time`, 
+			`current_appid`
+		)
+		values
+		(
+			#{uid}, 
+			#{pwd}, 
+			#{token}, 
+			#{state}, 
+			#{userSig}, 
+			#{registerTime}, 
+			#{loginTime}, 
+			#{logoutTime}, 
+			#{lastRequestTime}, 
+			#{currentAppid}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.classroom.entity.Account">
+		update t_account 
+		<set>
+			<if test="pwd != null">`pwd` = #{pwd}, </if>
+			<if test="token != null">`token` = #{token}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="userSig != null">`user_sig` = #{userSig}, </if>
+			<if test="registerTime != null">`register_time` = #{registerTime}, </if>
+			<if test="loginTime != null">`login_time` = #{loginTime}, </if>
+			<if test="logoutTime != null">`logout_time` = #{logoutTime}, </if>
+			<if test="lastRequestTime != null">`last_request_time` = #{lastRequestTime}, </if>
+			<if test="currentAppid != null">`current_appid` = #{currentAppid}</if>
+		</set>
+		where uid = #{uid}
+	</update>
+	
+	<delete id="delete">
+		delete from t_account where uid = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from t_account where uid in 
+		<foreach item="uid" collection="array" open="(" separator="," close=")">
+			#{uid}
+		</foreach>
+	</delete>
+
+</mapper>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.setting.dao.ContactDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.setting.entity.Contact" id="contactMap">
+        <result property="contactId" column="contact_id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="attachment" column="attachment"/>
+        <result property="contactInfo" column="contact_info"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+        <result property="createBy" column="create_by"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.setting.entity.Contact">
+		select ct.*, su.nickname as user_name from contact ct, sys_user su
+		where contact_id = #{value}
+		and ct.create_by = su.user_id
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.setting.entity.Contact">
+		select t.*,
+			su.nickname as user_name
+		from contact t, sys_user su
+		<include refid="where_clause" />
+		and t.create_by = su.user_id
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by contact_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from contact t  <include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="contactId != null and contactId != ''"> and t.contact_id = #{contactId} </if>
+    		<if test="contactIdVague != null and contactIdVague != ''"> and t.contact_id like concat('%',#{contactIdVague},'%') </if>
+            <if test="title != null and title != ''"> and t.title = #{title} </if>
+    		<if test="titleVague != null and titleVague != ''"> and t.title like concat('%',#{titleVague},'%') </if>
+            <if test="content != null and content != ''"> and t.content = #{content} </if>
+    		<if test="contentVague != null and contentVague != ''"> and t.content like concat('%',#{contentVague},'%') </if>
+            <if test="attachment != null and attachment != ''"> and t.attachment = #{attachment} </if>
+    		<if test="attachmentVague != null and attachmentVague != ''"> and t.attachment like concat('%',#{attachmentVague},'%') </if>
+            <if test="contactInfo != null and contactInfo != ''"> and t.contact_info = #{contactInfo} </if>
+    		<if test="contactInfoVague != null and contactInfoVague != ''"> and t.contact_info like concat('%',#{contactInfoVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+    		<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+            <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+    		<if test="createByVague != null and createByVague != ''"> and t.create_by like concat('%',#{createByVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.setting.entity.Contact" useGeneratedKeys="true" keyProperty="contactId">
+		insert into contact
+		(
+			`title`, 
+			`content`, 
+			`attachment`, 
+			`contact_info`, 
+			`state`, 
+			`create_at`, 
+			`create_by`
+		)
+		values
+		(
+			#{title}, 
+			#{content}, 
+			#{attachment}, 
+			#{contactInfo}, 
+			#{state}, 
+			NOW(),
+			#{createBy}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.setting.entity.Contact">
+		update contact 
+		<set>
+			<if test="title != null">`title` = #{title}, </if>
+			<if test="content != null">`content` = #{content}, </if>
+			<if test="attachment != null">`attachment` = #{attachment}, </if>
+			<if test="contactInfo != null">`contact_info` = #{contactInfo}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="createBy != null">`create_by` = #{createBy},</if>
+			`create_at` = NOW()
+		</set>
+		where contact_id = #{contactId}
+	</update>
+	
+	<delete id="delete">
+		delete from contact where contact_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from contact where contact_id in 
+		<foreach item="contactId" collection="array" open="(" separator="," close=")">
+			#{contactId}
+		</foreach>
+	</delete>
+
+</mapper>

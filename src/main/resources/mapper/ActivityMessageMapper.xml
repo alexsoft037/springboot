@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.message.dao.ActivityMessageDao">
+
+    <resultMap type="xin.xiaoer.modules.message.entity.ActivityMessage" id="activityMessageMap">
+        <result property="messageId" column="message_id"/>
+        <result property="name" column="name"/>
+        <result property="phoneNo" column="phone_no"/>
+        <result property="content" column="content"/>
+        <result property="createAt" column="create_at"/>
+    </resultMap>
+
+    <insert id="save" parameterType="xin.xiaoer.modules.message.entity.ActivityMessage" useGeneratedKeys="true" keyProperty="messageId">
+        insert into activity_message
+        (
+          `name`,
+          `phone_no`,
+          `content`,
+          `create_at`
+        )
+        values
+        (
+          #{name},
+          #{phoneNo},
+          #{content},
+          DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S')
+        )
+    </insert>
+
+    <select id="getList" resultMap="activityMessageMap">
+        select am.*
+        from activity_message am
+        <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by am.message_id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="getCount" resultType="int">
+        select count(*) from activity_message am
+        <include refid="where_clause" />
+    </select>
+
+    <delete id="deleteBatch">
+        delete from activity_message where message_id in
+        <foreach item="messageId" collection="array" open="(" separator="," close=")">
+            #{messageId}
+        </foreach>
+    </delete>
+
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="messageId != null and messageId != ''"> and am.message_id = #{messageId} </if>
+            <if test="name != null and name !=''">and am.name = #{name} </if>
+        </where>
+    </sql>
+
+
+</mapper>

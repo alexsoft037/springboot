@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.excitingactivity.dao.ExcitingActivityDao">
+
+    <resultMap type="xin.xiaoer.modules.excitingactivity.entity.ExcitingActivity" id="excitingActivityMap">
+        <result property="spaceId" column="space_id"/>
+        <result property="appraisalid" column="appraisal_id"/>
+        <result property="title" column="title"/>
+    </resultMap>
+    <insert id="save" parameterType="xin.xiaoer.modules.excitingactivity.entity.ExcitingActivity" useGeneratedKeys="true" keyProperty="id">
+        insert into activity_exciting
+        (
+        `appraisal_id`,
+        `space_id`,
+        `title`
+        )
+        values
+        (
+        #{appraisalid},
+        #{spaceId},
+        #{title}
+        )
+    </insert>
+
+    <delete id="delete">
+        delete from activity_exciting where story_id = #{value}
+    </delete>
+</mapper>

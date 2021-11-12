@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.donatespace.dao.DonateUserDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.donatespace.entity.DonateUser" id="donateUserMap">
+        <result property="id" column="id"/>
+        <result property="itemId" column="item_id"/>
+        <result property="itemTitle" column="item_title"/>
+        <result property="userId" column="user_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="donateAmount" column="donate_amount"/>
+        <result property="anonymous" column="anonymous"/>
+        <result property="createAt" column="create_at"/>
+    </resultMap>
+
+    <!--全国参与公益人数-->
+    <select id="getAttendDonateCount" resultType="int">
+		SELECT
+		COUNT(*)
+	FROM
+		(
+			SELECT
+				d.*
+			FROM
+				donate_user d
+			WHERE
+				1 = 1
+			GROUP BY
+				d.user_id
+			ORDER BY
+				d.user_id
+		) c
+	</select>
+    <!--捐赠次数-->
+    <select id="getDonateCount" resultType="int">
+		SELECT COUNT(*) FROM donate_user
+	</select>
+    <select id="get" resultType="xin.xiaoer.modules.donatespace.entity.DonateUser">
+		select t.*, if(t.anonymous like '1', '匿名', su.nickname) AS user_name
+		from donate_user t, sys_user su
+		WHERE t.id = #{value} AND su.user_id = t.user_id
+	</select>
+
+    <select id="getDetail" resultType="xin.xiaoer.modules.donatespace.entity.DonateUserDetail">
+		select t.*,
+			ds.title as item_title,
+			file.url as featured_image
+		from donate_user t, donate_space ds
+		left join (select * from sys_file group by upload_id) file
+		on ds.space_image = file.upload_id
+		WHERE t.id = #{value} AND ds.item_id = t.item_id
+	</select>
+
+    <select id="getTotalDonateAmount" resultType="java.lang.Double">
+        SELECT sum(du.donate_amount) FROM (select du.* from donate_user du, sys_user su where du.user_id = su.user_id)
+        du, donate_space ds
+        WHERE 1 = 1
+        AND du.item_id = ds.item_id
+        AND ds.state = '1'
+        <if test="userId != null and userId != ''">AND du.user_id = #{userId}</if>
+        <if test="spaceId != null and spaceId != ''">AND ds.space_id = #{spaceId}</if>
+    </select>
+
+    <select id="getTotalItemCount" resultType="int">
+        SELECT COUNT(du.id)
+        FROM (SELECT * FROM (select du.* from donate_user du, sys_user su where du.user_id = su.user_id) as du GROUP BY
+        user_id, item_id) du, donate_space ds
+        WHERE 1 = 1
+        AND du.item_id = ds.item_id
+        AND ds.state = '1'
+        <if test="userId != null and userId != ''">AND du.user_id = #{userId}</if>
+        <if test="spaceId != null and spaceId != ''">AND ds.space_id = #{spaceId}</if>
+    </select>
+
+    <select id="getDonateResumeByItemId" resultType="xin.xiaoer.modules.mobile.entity.DonateUserResume">
+		SELECT du.item_id as itemId,
+			COUNT(du.id) AS donateUserCount,
+			sum(du.donate_amount) AS donateAmount,
+			du.user_id
+		FROM (SELECT du.*
+			FROM
+			(select du.*
+			from (select du.* from donate_user du, sys_user su where du.user_id = su.user_id) du, donate_space ds
+			where du.item_id = #{value}
+			AND du.item_id = ds.item_id
+			AND ds.state = '1') AS du)AS du
+			LEFT JOIN
+			review re
+			ON du.user_id = re.user_id
+			WHERE du.item_id = #{value}
+			GROUP BY du.item_id
+	</select>
+
+    <select id="getListGroupByItemId" resultType="xin.xiaoer.modules.donatespace.entity.DonateUser">
+        select t.id,
+        t.user_id,
+        t.donate_amount as donate_amount,
+        t.item_id,
+        t.create_at,
+        if(t.anonymous like '1', '匿名', su.nickname) AS user_name,
+        su.avatar
+        from donate_user t, sys_user su, donate_space ds
+        <include refid="where_clause"/>
+        AND t.item_id = ds.item_id
+        and t.user_id = su.user_id
+        AND ds.state = '1'
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by t.${sidx} ${order}
+            </when>
+            <otherwise>
+                order by t.id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="getList" resultType="xin.xiaoer.modules.donatespace.entity.DonateUser">
+        select t.*
+        from (select t.*, if(t.anonymous like '1', '匿名', su.nickname) AS user_name
+        from (SELECT du.*,
+        ds.title AS item_title
+        FROM (select du.*
+        from donate_user du, sys_user su
+        where du.user_id = su.user_id) du, donate_space ds
+        WHERE du.item_id = ds.item_id
+        <if test="spaceId != null and spaceId != ''">and ds.space_id = #{spaceId}</if>) t, sys_user su
+        where su.user_id = t.user_id) t
+        <include refid="where_clause"/>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by t.${sidx} ${order}
+            </when>
+            <otherwise>
+                order by t.id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="getCount" resultType="int">
+        select count(*)
+        from (select t.*, if(t.anonymous like '1', '匿名', su.nickname) AS user_name
+        from (SELECT du.*,
+        ds.title AS item_title
+        FROM (select du.*
+        from donate_user du, sys_user su
+        where du.user_id = su.user_id) du, donate_space ds
+        WHERE du.item_id = ds.item_id
+        <if test="state != null and state != ''">
+            AND ds.state = #{state}
+        </if>
+        ) t, sys_user su
+        where su.user_id = t.user_id) t
+        <include refid="where_clause"/>
+    </select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="id != null and id != ''">and t.id = #{id}</if>
+            <if test="idVague != null and idVague != ''">and t.id like concat('%',#{idVague},'%')</if>
+            <if test="itemId != null and itemId != ''">and t.item_id = #{itemId}</if>
+            <if test="itemIdVague != null and itemIdVague != ''">and t.item_id like concat('%',#{itemIdVague},'%')</if>
+            <if test="userId != null and userId != ''">and t.user_id = #{userId}</if>
+            <if test="userIdVague != null and userIdVague != ''">and t.user_id like concat('%',#{userIdVague},'%')</if>
+            <if test="donateAmount != null and donateAmount != ''">and t.donate_amount = #{donateAmount}</if>
+            <if test="donateAmountVague != null and donateAmountVague != ''">and t.donate_amount like
+                concat('%',#{donateAmountVague},'%')
+            </if>
+            <if test="createAt != null and createAt != ''">and t.create_at = #{createAt}</if>
+            <if test="createAtVague != null and createAtVague != ''">and t.create_at like
+                concat('%',#{createAtVague},'%')
+            </if>
+            <if test="searchFrom != null and searchFrom != ''">and DATE_FORMAT(t.create_at, '%Y-%m-%d') <![CDATA[>=]]>
+                DATE_FORMAT(#{searchFrom}, '%Y-%m-%d')
+            </if>
+            <if test="searchTo != null and searchTo != ''">and DATE_FORMAT(t.create_at, '%Y-%m-%d') <![CDATA[<=]]>
+                DATE_FORMAT(#{searchTo}, '%Y-%m-%d')
+            </if>
+
+        </where>
+    </sql>
+
+    <insert id="save" parameterType="xin.xiaoer.modules.donatespace.entity.DonateUser" useGeneratedKeys="true"
+            keyProperty="id">
+		insert into donate_user
+		(
+			`item_id`, 
+			`user_id`, 
+			`donate_amount`, 
+			`anonymous`,
+			`create_at`
+		)
+		values
+		(
+			#{itemId}, 
+			#{userId}, 
+			#{donateAmount}, 
+			#{anonymous},
+			DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S')
+		)
+	</insert>
+
+    <update id="update" parameterType="xin.xiaoer.modules.donatespace.entity.DonateUser">
+        update donate_user
+        <set>
+            <if test="itemId != null">`item_id` = #{itemId},</if>
+            <if test="userId != null">`user_id` = #{userId},</if>
+            <if test="donateAmount != null">`donate_amount` = #{donateAmount},</if>
+            <if test="anonymous != null">`anonymous` = #{anonymous},</if>
+            <if test="createAt != null">`create_at` = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S')</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="delete">
+		delete from donate_user where id = #{value}
+	</delete>
+
+    <delete id="deleteBatch">
+        delete from donate_user where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!--累计支出-->
+    <select id="getSumAmount" resultType="String">
+        SELECT
+        SUM(d.donate_amount)
+        FROM
+        donate_user d
+        WHERE
+        1 = 1
+        <if test="userId != null and userId != ''">
+
+            AND d.user_id = #{userId}
+        </if>
+    </select>
+
+    <!--资金支出-->
+    <select id="getListAccountByUserId" resultType="xin.xiaoer.modules.website.entity.WebAccount">
+        SELECT
+        du.id,
+        du.item_id,
+        du.user_id,
+        du.donate_amount,
+        ds.title,
+        du.create_at,
+        du.anonymous
+        FROM
+        donate_user du
+        LEFT JOIN donate_space ds ON du.item_id = ds.item_id
+        WHERE
+        1 = 1
+        <if test="userId != null and userId !=''">
+            AND du.user_id = #{userId}
+        </if>
+        <if test="state != null and state != ''">
+            AND ds.state = #{state}
+        </if>
+        <if test="searchFrom != null and searchFrom != ''">and DATE_FORMAT(du.create_at, '%Y-%m-%d') <![CDATA[>=]]>
+            DATE_FORMAT(#{searchFrom}, '%Y-%m-%d')
+        </if>
+        <if test="searchTo != null and searchTo != ''">and DATE_FORMAT(du.create_at, '%Y-%m-%d') <![CDATA[<=]]>
+            DATE_FORMAT(#{searchTo}, '%Y-%m-%d')
+        </if>
+        <if test="offset != null and limit != null">
+            LIMIT #{offset},#{limit}
+        </if>
+    </select>
+</mapper>

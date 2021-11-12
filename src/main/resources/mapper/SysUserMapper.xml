@@ -1,0 +1,906 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.dao.SysUserDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.entity.SysUser" id="sysUserMap">
+        <result property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="nickname" column="nickname"/>
+        <result property="password" column="password"/>
+        <result property="name" column="name"/>
+        <result property="email" column="email"/>
+        <result property="phoneNo" column="phone_no"/>
+        <result property="personality" column="personality"/>
+        <result property="roleId" column="role_id"/>
+        <result property="orgId" column="org_id"/>
+        <result property="objId" column="obj_id"/>
+        <result property="avatar" column="avatar"/>
+        <result property="gender" column="gender"/>
+        <result property="address" column="address"/>
+        <result property="activeRate" column="active_rate"/>
+        <result property="userClassCode" column="user_class_code"/>
+        <result property="roleNames" column="role_names"/>
+        <result property="status" column="status"/>
+        <result property="lastLoginIpaddr" column="last_login_ipaddr"/>
+        <result property="lastLoginDt" column="last_login_dt"/>
+        <result property="loginCount" column="login_count"/>
+        <result property="isOnline" column="is_online"/>
+        <result property="deviceId" column="device_id"/>
+        <result property="pushToken" column="push_token"/>
+        <result property="deviceType" column="device_type"/>
+        <result property="spaceId" column="space_id"/>
+        <result property="createTime" column="create_time"/>
+        <result property="createUserId" column="create_user_id"/>
+    </resultMap>
+
+    <!--志愿者人数-->
+    <select id="getVolunteerCount" resultType="int">
+        SELECT
+			g.gg+s.ss
+		FROM
+			(
+				SELECT
+					COUNT(*) AS gg
+				FROM
+					guoshan_user g
+				WHERE
+					g.type = '1'
+			) g
+		INNER JOIN (
+			SELECT
+				COUNT(*) AS ss
+			FROM
+				sys_user s
+			WHERE
+				s.user_class_code = '2'
+		) s
+    </select>
+    <select id="queryObject" resultType="xin.xiaoer.entity.SysUser">
+		select * from (SELECT su.*, gu.volunteer_id, sp.space_name FROM sys_user su
+          LEFT JOIN guoshan_user gu
+          ON gu.user_id = su.user_id
+          left join space sp
+          on sp.space_id = su.space_id) `user` where user_id = #{value}
+	</select>
+
+    <select id="getNewLogin" resultType="xin.xiaoer.entity.SysUser">
+		select * from sys_user where user_id = #{userId} and device_id not like #{deviceId}
+	</select>
+
+    <select id="queryList" resultType="xin.xiaoer.entity.SysUser">
+        select * from (SELECT su.*, gu.volunteer_id FROM sys_user su
+        LEFT JOIN guoshan_user gu
+        ON gu.user_id = su.user_id) `user`
+        <where>
+            <if test="createUserId != null">
+                and `create_user_id` = #{createUserId}
+            </if>
+            <if test="spaceId != null">
+                and `space_id` = #{spaceId}
+            </if>
+            <if test="username != null and username.trim() != ''">
+                and `username` like concat('%',#{username},'%')
+            </if>
+            <if test="phoneNo != null and phoneNo.trim() != ''">
+                and `phone_no` like concat('%',#{phoneNo},'%')
+            </if>
+            <if test="userClassCode != null and userClassCode != 0">
+                and `user_class_code` like concat('%',#{userClassCode},'%')
+            </if>
+        </where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by user_id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="queryTotal" resultType="int">
+        select count(*) from (SELECT su.*, gu.volunteer_id FROM sys_user su
+        LEFT JOIN guoshan_user gu
+        ON gu.user_id = su.user_id) `user`
+        <where>
+            <if test="createUserId != null">
+                and `create_user_id` = #{createUserId}
+            </if>
+            <if test="spaceId != null">
+                and `space_id` = #{spaceId}
+            </if>
+            <if test="username != null and username.trim() != ''">
+                and `username` like concat('%',#{username},'%')
+            </if>
+            <if test="phoneNo != null and phoneNo.trim() != ''">
+                and `phone_no` like concat('%',#{phoneNo},'%')
+            </if>
+            <if test="userClassCode != null and userClassCode != 0">
+                and `user_class_code` like concat('%',#{userClassCode},'%')
+            </if>
+        </where>
+    </select>
+
+    <select id="queryUserList" resultType="xin.xiaoer.entity.SysUser">
+        select * from (SELECT su.*, gu.volunteer_id FROM sys_user su
+        LEFT JOIN guoshan_user gu
+        ON gu.user_id = su.user_id) `user`
+        <where>
+            <if test="createUserId != null">
+                and `create_user_id` = #{createUserId}
+            </if>
+            <if test="spaceId != null">
+                and `space_id` = #{spaceId}
+            </if>
+            <if test="username != null and username.trim() != ''">
+                and `username` like concat('%',#{username},'%')
+            </if>
+            <if test="phoneNo != null and phoneNo.trim() != ''">
+                and `phone_no` like concat('%',#{phoneNo},'%')
+            </if>
+            and user_class_code NOT LIKE 1
+        </where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by user_id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="queryUserTotal" resultType="int">
+        select count(*) from (SELECT su.*, gu.volunteer_id FROM sys_user su
+        LEFT JOIN guoshan_user gu
+        ON gu.user_id = su.user_id) `user`
+        <where>
+            <if test="createUserId != null">
+                and `create_user_id` = #{createUserId}
+            </if>
+            <if test="spaceId != null">
+                and `space_id` = #{spaceId}
+            </if>
+            <if test="username != null and username.trim() != ''">
+                and `username` like concat('%',#{username},'%')
+            </if>
+            <if test="phoneNo != null and phoneNo.trim() != ''">
+                and `phone_no` like concat('%',#{phoneNo},'%')
+            </if>
+            and user_class_code NOT LIKE 1
+        </where>
+
+    </select>
+
+    <select id="queryAdminList" resultType="xin.xiaoer.entity.SysUser">
+        select * from (SELECT su.*, gu.volunteer_id, sp.space_name FROM sys_user su
+        LEFT JOIN guoshan_user gu
+        ON gu.user_id = su.user_id
+        left join space sp
+        on sp.space_id = su.space_id) `user`
+        <where>
+            <if test="createUserId != null">
+                and `create_user_id` = #{createUserId}
+            </if>
+            <if test="spaceId != null">
+                and `space_id` = #{spaceId}
+            </if>
+            <if test="username != null and username.trim() != ''">
+                and `username` like concat('%',#{username},'%')
+            </if>
+            <if test="phoneNo != null and phoneNo.trim() != ''">
+                and `phone_no` like concat('%',#{phoneNo},'%')
+            </if>
+            and user_class_code = 1
+        </where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by user_id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="queryAdminTotal" resultType="int">
+        select count(*) from (SELECT su.*, gu.volunteer_id, sp.space_name FROM sys_user su
+        LEFT JOIN guoshan_user gu
+        ON gu.user_id = su.user_id
+        left join space sp
+        on sp.space_id = su.space_id) `user`
+        <where>
+            <if test="createUserId != null">
+                and `create_user_id` = #{createUserId}
+            </if>
+            <if test="spaceId != null">
+                and `space_id` = #{spaceId}
+            </if>
+            <if test="username != null and username.trim() != ''">
+                and `username` like concat('%',#{username},'%')
+            </if>
+            <if test="phoneNo != null and phoneNo.trim() != ''">
+                and `phone_no` like concat('%',#{phoneNo},'%')
+            </if>
+            and user_class_code = 1
+        </where>
+    </select>
+
+    <select id="queryAdminRoleList" resultType="xin.xiaoer.entity.SysUser">
+        select * from (SELECT su.*, ur.role_names FROM sys_user su
+        LEFT JOIN (SELECT GROUP_CONCAT(sr.role_name SEPARATOR ',') AS role_names,
+        ur.user_id
+        FROM sys_user_role ur, sys_role sr
+        WHERE ur.role_id = sr.role_id GROUP BY ur.user_id) ur
+        ON ur.user_id = su.user_id) `user`
+        <where>
+            <if test="createUserId != null">
+                and `create_user_id` = #{createUserId}
+            </if>
+            <if test="spaceId != null">
+                and `space_id` = #{spaceId}
+            </if>
+            <if test="username != null and username.trim() != ''">
+                and `username` like concat('%',#{username},'%')
+            </if>
+            <if test="phoneNo != null and phoneNo.trim() != ''">
+                and `phone_no` like concat('%',#{phoneNo},'%')
+            </if>
+            and user_class_code = 1
+        </where>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by user_id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="queryAdminRoleTotal" resultType="int">
+        select count(*) from (SELECT su.*, ur.role_names FROM sys_user su
+        LEFT JOIN (SELECT GROUP_CONCAT(sr.role_name SEPARATOR ',') AS role_names,
+        ur.user_id
+        FROM sys_user_role ur, sys_role sr
+        WHERE ur.role_id = sr.role_id GROUP BY ur.user_id) ur
+        ON ur.user_id = su.user_id) `user`
+        <where>
+            <if test="createUserId != null">
+                and `create_user_id` = #{createUserId}
+            </if>
+            <if test="spaceId != null">
+                and `space_id` = #{spaceId}
+            </if>
+            <if test="username != null and username.trim() != ''">
+                and `username` like concat('%',#{username},'%')
+            </if>
+            <if test="phoneNo != null and phoneNo.trim() != ''">
+                and `phone_no` like concat('%',#{phoneNo},'%')
+            </if>
+            and user_class_code = 1
+        </where>
+    </select>
+
+    <select id="queryOnlineTotal" resultType="int">
+        select count(*) from sys_user su
+        where su.is_online = '1'
+        and su.status = 1
+    </select>
+
+    <!-- 查询用户的所有权限 -->
+    <select id="queryAllPerms" resultType="string">
+		select m.perms from sys_user_role ur
+			LEFT JOIN sys_role_menu rm on ur.role_id = rm.role_id 
+			LEFT JOIN sys_menu m on rm.menu_id = m.menu_id 
+		where ur.user_id = #{userId}
+	</select>
+    <!-- 查询用户的所有菜单ID -->
+    <select id="queryAllMenuId" resultType="long">
+		select distinct rm.menu_id from sys_user_role ur
+			LEFT JOIN sys_role_menu rm on ur.role_id = rm.role_id 
+		where ur.user_id = #{userId}
+	</select>
+
+    <select id="queryByUserName" resultType="xin.xiaoer.entity.SysUser">
+		select * from (SELECT su.*, gu.volunteer_id, sp.space_name FROM sys_user su
+          LEFT JOIN guoshan_user gu
+          ON gu.user_id = su.user_id
+          left join space sp
+            on sp.space_id = su.space_id) `user` where username = #{username}
+	</select>
+
+    <select id="queryAdminByUserName" resultType="xin.xiaoer.entity.SysUser">
+		select * from (SELECT su.*, gu.volunteer_id, sp.space_name FROM sys_user su
+          LEFT JOIN guoshan_user gu
+          ON gu.user_id = su.user_id
+          left join space sp
+            on sp.space_id = su.space_id) `user` where username = #{username} and user_class_code = 1
+	</select>
+
+    <select id="queryByPhone" resultType="xin.xiaoer.entity.SysUser">
+        select * from (SELECT su.*, gu.volunteer_id, sp.space_name FROM sys_user su
+          LEFT JOIN guoshan_user gu
+          ON gu.user_id = su.user_id
+          left join space sp
+            on sp.space_id = su.space_id) `user` where phone_no = #{phoneNo}
+    </select>
+
+    <select id="checkDuplicateUser" parameterType="xin.xiaoer.entity.SysUser" resultType="java.lang.Integer">
+        SELECT 	1
+        FROM 	sys_user
+        WHERE 	phone_no = #{phoneNo}
+        limit 1
+    </select>
+    <!--使user和sns表id不重复-->
+    <insert id="save" parameterType="xin.xiaoer.entity.SysUser" useGeneratedKeys="true" keyProperty="userId">
+        <selectKey resultType="java.lang.Long" keyProperty="userId" order="AFTER">
+            SELECT LAST_INSERT_ID() as userId
+        </selectKey>
+        insert into sys_user
+        (
+        username,
+        `name`,
+        `nickname`,
+        password,
+        email,
+        phone_no,
+        personality,
+        status,
+        gender,
+        `address`,
+        create_user_id,
+        create_time,
+        role_id,
+        org_id,
+        obj_id,
+        user_class_code,
+        avatar,
+        active_rate,
+        last_login_ipaddr,
+        last_login_dt,
+        login_count,
+        device_id,
+        push_token,
+        device_type,
+        space_id,
+        is_online
+        )
+        values
+        (
+        #{username},
+        #{name},
+        #{nickname},
+        #{password},
+        #{email},
+        #{phoneNo},
+        #{personality},
+        #{status},
+        #{gender},
+        #{address},
+        #{createUserId},
+        #{createTime},
+        #{roleId},
+        #{orgId},
+        #{objId},
+        #{userClassCode},
+        #{avatar},
+        #{activeRate},
+        #{lastLoginIpaddr},
+        #{lastLoginDt},
+        #{loginCount},
+        #{deviceId},
+        #{pushToken},
+        #{deviceType},
+        #{spaceId},
+        #{isOnline}
+        )
+    </insert>
+
+    <insert id="insertSelective" parameterType="xin.xiaoer.entity.SysUser">
+        <selectKey resultType="java.lang.Long" keyProperty="userId" order="AFTER">
+            SELECT LAST_INSERT_ID() as userId
+        </selectKey>
+        insert into sys_user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null">
+                `name`,
+            </if>
+            <if test="nickname != null">
+                nickname,
+            </if>
+            <if test="username != null">
+                username,
+            </if>
+            <if test="password != null">
+                password,
+            </if>
+            <if test="email != null">
+                email,
+            </if>
+            <if test="phoneNo != null">
+                phone_no,
+            </if>
+            <if test="personality != null">
+                personality,
+            </if>
+            <if test="status != null">
+                status,
+            </if>
+            <if test="gender != null">
+                gender,
+            </if>
+            <if test="address != null">
+                address,
+            </if>
+            <if test="createUserId != null">
+                create_user_id,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="roleId != null">
+                role_id,
+            </if>
+            <if test="orgId != null">
+                org_id,
+            </if>
+            <if test="objId != null">
+                obj_id,
+            </if>
+            <if test="userClassCode != null">
+                user_class_code,
+            </if>
+            <if test="avatar != null">
+                avatar,
+            </if>
+            <if test="activeRate != null">
+                active_rate,
+            </if>
+            <if test="lastLoginIpaddr != null">
+                last_login_ipaddr,
+            </if>
+            <if test="lastLoginDt != null">
+                last_login_dt,
+            </if>
+            <if test="loginCount != null">
+                login_count,
+            </if>
+            <if test="deviceId != null">
+                device_id,
+            </if>
+            <if test="pushToken != null">
+                push_token,
+            </if>
+            <if test="spaceId != null">
+                space_id,
+            </if>
+            <if test="isOnline != null">
+                is_online
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null">
+                #{name, jdbcType=VARCHAR},
+            </if>
+            <if test="nickname != null">
+                #{nickname, jdbcType=VARCHAR},
+            </if>
+            <if test="username != null">
+                #{username, jdbcType=VARCHAR},
+            </if>
+            <if test="password != null">
+                #{password, jdbcType=VARCHAR},
+            </if>
+            <if test="email != null">
+                #{email, jdbcType=VARCHAR},
+            </if>
+            <if test="phoneNo != null">
+                #{phoneNo, jdbcType=VARCHAR},
+            </if>
+            <if test="personality != null">
+                #{personality, jdbcType=TEXT},
+            </if>
+            <if test="status != null">
+                #{status, jdbcType=SMALLINT},
+            </if>
+            <if test="gender != null">
+                #{gender, jdbcType=CHAR},
+            </if>
+            <if test="address != null">
+                #{address, jdbcType=VARCHAR},
+            </if>
+            <if test="createUserId != null">
+                #{createUserId, jdbcType=BIGINT},
+            </if>
+            <if test="createTime != null">
+                #{createTime, jdbcType=TIMESTAMP},
+            </if>
+            <if test="roleId != null">
+                #{roleId, jdbcType=BIGINT},
+            </if>
+            <if test="orgId != null">
+                #{orgId, jdbcType=INTEGER },
+            </if>
+            <if test="objId != null">
+                #{objId, jdbcType=INTEGER },
+            </if>
+            <if test="userClassCode != null">
+                #{userClassCode},
+            </if>
+            <if test="avatar != null">
+                #{avatar},
+            </if>
+            <if test="activeRate != null">
+                #{activeRate},
+            </if>
+            <if test="lastLoginIpaddr != null">
+                #{lastLoginIpaddr, jdbcType=VARCHAR},
+            </if>
+            <if test="lastLoginDt != null">
+                #{lastLoginDt, jdbcType=TIMESTAMP},
+            </if>
+            <if test="loginCount != null">
+                #{loginCount, jdbcType=INTEGER },
+            </if>
+            <if test="deviceId != null">
+                #{deviceId, jdbcType=VARCHAR },
+            </if>
+            <if test="pushToken != null">
+                #{pushToken, jdbcType=VARCHAR },
+            </if>
+            <if test="spaceId != null">
+                #{spaceId, jdbcType=INTEGER },
+            </if>
+            <if test="isOnline != null">
+                #{isOnline, jdbcType=CHAR }
+            </if>
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="xin.xiaoer.entity.SysUser">
+        update sys_user
+        <set>
+            <if test="username != null">username = #{username},</if>
+            <if test="name != null">`name` = #{name},</if>
+            <if test="nickname != null">nickname = #{nickname},</if>
+            <if test="password != null">password = #{password},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="phoneNo != null">phone_no = #{phoneNo},</if>
+            <if test="personality != null">personality = #{personality},</if>
+            <if test="status != null ">status = #{status},</if>
+            <if test="gender != null ">gender = #{gender},</if>
+            <if test="address != null ">address = #{address},</if>
+            <if test="createUserId != null ">create_user_id = #{createUserId},</if>
+            <if test="createTime != null ">create_time = #{createTime},</if>
+            <if test="roleId != null">role_id = #{roleId},</if>
+            <if test="orgId != null">org_id = #{orgId},</if>
+            <if test="objId != null">obj_id = #{objId},</if>
+            <if test="userClassCode != null">user_class_code = #{userClassCode},</if>
+            <if test="avatar != null">avatar = #{avatar},</if>
+            <if test="activeRate != null">active_rate = #{activeRate},</if>
+            <if test="lastLoginIpaddr != null">last_login_ipaddr = #{lastLoginIpaddr},</if>
+            <if test="lastLoginDt != null">last_login_dt = #{lastLoginDt},</if>
+            <if test="loginCount != null">login_count = #{loginCount},</if>
+            <if test="deviceId != null">device_id = #{deviceId},</if>
+            <if test="pushToken != null">push_token = #{pushToken},</if>
+            <if test="deviceType != null">device_type = #{deviceType},</if>
+            <if test="spaceId != null">space_id = #{spaceId},</if>
+            <if test="isOnline != null">is_online = #{isOnline}</if>
+        </set>
+        where user_id = #{userId}
+        <!--<if test="createUserId != null">-->
+        <!--and `create_user_id` = #{createUserId}-->
+        <!--</if>-->
+    </update>
+
+    <update id="updatePassword" parameterType="map">
+		update sys_user set `password` = #{newPassword} 
+			where user_id = #{userId} and password = #{password}
+	</update>
+
+    <update id="updateSession" parameterType="map">
+        update sys_user
+        <set>
+            <if test="loginCount != null">
+                `login_count` = #{loginCount},
+            </if>
+            <if test="lastLoginIpaddr != null">
+                `last_login_ipaddr` = #{lastLoginIpaddr},
+            </if>
+            <if test="lastLoginDt != null">
+                `last_login_dt` = #{lastLoginDt},
+            </if>
+            <if test="deviceId != null">
+                `device_id` = #{deviceId},
+            </if>
+            <if test="pushToken != null">
+                push_token = #{pushToken},
+            </if>
+            <if test="deviceType != null">
+                device_type = #{deviceType},
+            </if>
+            `is_online` = #{isOnline}
+        </set>
+        where user_id = #{userId}
+    </update>
+
+    <delete id="deleteBatch">
+        delete from sys_user where user_id in
+        <foreach item="userId" collection="array" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteUserRole">
+        delete from sys_user_role where user_id in
+        <foreach item="userId" collection="array" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </delete>
+
+    <!--全国排名-->
+    <select id="getNationalRanking" resultType="int">
+        SELECT
+        rank
+        FROM
+        (
+        SELECT
+        t.*, @curRank := @curRank + 1 AS rank
+        FROM
+        (
+        SELECT
+        sum(integral),
+        t.user_id
+        FROM
+        integral t
+        GROUP BY
+        user_id
+        ORDER BY
+        sum(integral) DESC
+        ) t,
+        (SELECT @curRank := 0) r
+        ) AS integral
+        WHERE
+        1=1
+        <if test="userId != null and userId!=''">
+            and user_id = #{userId}
+        </if>
+
+    </select>
+
+    <!--消息推送用户-->
+    <select id="queryBySendTarget" resultType="java.lang.String">
+        SELECT
+        c.accid
+        FROM
+        sys_user s
+        LEFT JOIN (
+        SELECT
+        i.user_id,
+        IFNULL(SUM(i.integral), 0) AS integral
+        FROM
+        integral i
+        GROUP BY
+        i.user_id
+        ) i ON i.user_id = s.user_id
+        LEFT JOIN chat_user c ON s.user_id = c.user_id
+        WHERE
+        1 = 1
+        <if test="powered != null and powered != ''">
+            AND s.device_type= #{powered}
+        </if>
+        <if test="rankMin != null and rankMax != null and rankMin != '' and rankMax != ''">
+            AND i.integral BETWEEN #{rankMin} AND #{rankMax}
+        </if>
+        <if test="phone != null and phone != ''">
+            AND s.phone_no in
+            <foreach collection="phone" separator="," index="index" item="item" open="(" close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <!--个人积分排名-->
+    <select id="getUserIntegralRank" resultType="xin.xiaoer.modules.website.entity.SysUserIntegralRankItem">
+        SELECT * FROM (
+        SELECT
+        s.*,@curRank := @curRank + 1 AS rank
+        FROM
+        (
+        SELECT
+        su.user_id,
+        su.`name`,
+        su.nickname,
+        si.user_integral
+        FROM
+        sys_user su
+        LEFT JOIN (
+        SELECT
+        i.user_id,
+        SUM(i.integral) AS user_integral
+        FROM
+        integral i
+        GROUP BY
+        i.user_id
+        ) si ON su.user_id = si.user_id
+        WHERE
+        1 = 1
+        AND su.`status` = '1'
+        ORDER BY
+        si.user_integral DESC
+        ) s,
+        (SELECT @curRank := 0) q
+        where 1=1) t
+        <if test="offset != null and limit !=null">
+            LIMIT #{offset},#{limit}
+        </if>
+    </select>
+    <select id="getCount" resultType="int">
+        select count(*) from sys_user t
+        <include refid="where_clause"/>
+    </select>
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="spaceId != null and spaceId != ''">and t.space_id = #{spaceId}</if>
+            <if test="spaceIdVague != null and spaceIdVague != ''">and t.space_id like concat('%',#{spaceIdVague},'%')
+            </if>
+            <if test="spaceName != null and spaceName != ''">and t.space_name = #{spaceName}</if>
+            <if test="spaceNameVague != null and spaceNameVague != ''">and t.space_name like
+                concat('%',#{spaceNameVague},'%')
+            </if>
+            <if test="description != null and description != ''">and t.description = #{description}</if>
+            <if test="descriptionVague != null and descriptionVague != ''">and t.description like
+                concat('%',#{descriptionVague},'%')
+            </if>
+            <if test="level != null and level != ''">and t.level = #{level}</if>
+            <if test="levelVague != null and levelVague != ''">and t.level like concat('%',#{levelVague},'%')</if>
+            <if test="upperId != null and upperId != ''">and t.upper_id = #{upperId}</if>
+            <if test="upperIdVague != null and upperIdVague != ''">and t.upper_id like concat('%',#{upperIdVague},'%')
+            </if>
+            <if test="address != null and address != ''">and t.address = #{address}</if>
+            <if test="addressVague != null and addressVague != ''">and t.address like concat('%',#{addressVague},'%')
+            </if>
+            <if test="district != null and district != ''">and t.district = #{district}</if>
+            <if test="districtVague != null and districtVague != ''">and t.district like
+                concat('%',#{districtVague},'%')
+            </if>
+            <if test="city != null and city != ''">and t.city = #{city}</if>
+            <if test="cityVague != null and cityVague != ''">and t.city like concat('%',#{cityVague},'%')</if>
+            <if test="province != null and province != ''">and t.province = #{province}</if>
+            <if test="provinceVague != null and provinceVague != ''">and t.province like
+                concat('%',#{provinceVague},'%')
+            </if>
+            <if test="street != null and street != ''">and t.street = #{street}</if>
+            <if test="streetVague != null and streetVague != ''">and t.street like concat('%',#{streetVague},'%')</if>
+            <if test="streetNumber != null and streetNumber != ''">and t.street_number = #{streetNumber}</if>
+            <if test="streetNumberVague != null and streetNumberVague != ''">and t.street_number like
+                concat('%',#{streetNumberVague},'%')
+            </if>
+            <if test="latitude != null and latitude != ''">and t.latitude = #{latitude}</if>
+            <if test="latitudeVague != null and latitudeVague != ''">and t.latitude like
+                concat('%',#{latitudeVague},'%')
+            </if>
+            <if test="longitude != null and longitude != ''">and t.longitude = #{longitude}</if>
+            <if test="longitudeVague != null and longitudeVague != ''">and t.longitude like
+                concat('%',#{longitudeVague},'%')
+            </if>
+            <if test="area != null and area != ''">and t.area = #{area}</if>
+            <if test="areaVague != null and areaVague != ''">and t.area like concat('%',#{areaVague},'%')</if>
+            <if test="state != null and state != ''">and t.state = #{state}</if>
+            <if test="stateVague != null and stateVague != ''">and t.state like concat('%',#{stateVague},'%')</if>
+            <if test="createAt != null and createAt != ''">and t.create_at = #{createAt}</if>
+            <if test="createAtVague != null and createAtVague != ''">and t.create_at like
+                concat('%',#{createAtVague},'%')
+            </if>
+            <if test="createBy != null and createBy != ''">and t.create_by = #{createBy}</if>
+            <if test="createByVague != null and createByVague != ''">and t.create_by like
+                concat('%',#{createByVague},'%')
+            </if>
+            <if test="updateAt != null and updateAt != ''">and t.update_at = #{updateAt}</if>
+            <if test="updateAtVague != null and updateAtVague != ''">and t.update_at like
+                concat('%',#{updateAtVague},'%')
+            </if>
+            <if test="updateBy != null and updateBy != ''">and t.update_by = #{updateBy}</if>
+            <if test="updateByVague != null and updateByVague != ''">and t.update_by like
+                concat('%',#{updateByVague},'%')
+            </if>
+            <if test="status != null and status != '' ">
+                and t.status = #{status}
+            </if>
+        </where>
+    </sql>
+
+    <select id="get" resultType="xin.xiaoer.entity.SysUser">
+        SELECT
+        *
+        FROM
+        sys_user t
+        WHERE t.user_id=#{value}
+    </select>
+
+    <!--荣誉榜单-志愿者排名-->
+    <select id="getvolunteerRankAtHonorList" resultType="map">
+        SELECT
+            su.user_id as userId,
+            su.nickname as nickName,
+            du.donateCount,
+            du.donateAmount,
+            i.integral
+        FROM
+            sys_user su
+        LEFT JOIN (
+            SELECT
+                du.user_id,
+                COUNT(*) AS donateCount,
+                SUM(du.donate_amount) AS donateAmount
+            FROM
+                donate_user du
+            GROUP BY
+                du.user_id
+        ) du ON su.user_id = du.user_id
+        LEFT JOIN (
+            SELECT
+                i.user_id,
+                SUM(i.integral) AS integral
+            FROM
+                integral i
+            GROUP BY
+                i.user_id
+        ) i ON su.user_id = i.user_id
+        LEFT JOIN t_area ta ON su.address = ta.level_area
+        WHERE
+            1=1
+            <if test="search != null and search != ''">
+                AND su.nickname LIKE concat('%',#{search},'%')
+            </if>
+            <if test="region != null and region != ''">
+                AND ta.region = #{region}
+            </if>
+        ORDER BY
+            i.integral DESC
+    </select>
+
+    <select id="getAccidByRoleId" resultType="String">
+        SELECT
+        cu.accid
+        FROM
+        sys_user su
+        LEFT JOIN chat_user cu ON su.user_id = cu.user_id
+        LEFT JOIN sys_user_role sur ON su.user_id = sur.user_id
+        WHERE
+        su.`status` = '1'
+        AND cu.state = '1'
+        <if test="roleId != null and roleId != ''">
+            AND sur.role_id = #{roleId}
+        </if>
+    </select>
+
+    <select id="getRemark" resultType="String">
+        SELECT
+        sr.remark
+        FROM
+        sys_user su
+        LEFT JOIN sys_user_role sur ON su.user_id = sur.user_id
+        LEFT JOIN sys_role sr ON sur.role_id = sr.role_id
+        WHERE
+        1 = 1
+        <if test="userId != null and userId != ''">AND su.user_id = #{userId}</if>
+    </select>
+</mapper>

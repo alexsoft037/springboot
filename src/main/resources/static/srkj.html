@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>少儿空间App下载页面</title>
+    <meta name="keywords" content="少儿空间App下载,少儿空间IOS,少儿空间Android App下载,下载">
+    <meta name="description" content="下载少儿空间">
+    <link rel="shortcut icon" href="/favicon.ico">
+
+    <script>
+         /**
+         urlp=[];u=location.search.replace("?","").split("&").forEach(function(d){e=d.split("=");urlp[e[0]]=e[1];})
+
+         if(navigator.userAgent.match(/(iPhone|iPod|iPad);?/i))
+         {
+          window.location.href = "srkj://srkj.guoshanchina.com/mobile/share/"+urlp['module']+"/" + urlp['id'];//ios app协议
+          // window.setTimeout(function() {
+          //     window.location.href = "https://itunes.apple.com/cn/app/id477927812";
+          // }, 2000)
+         }
+         if(navigator.userAgent.match(/android/i))
+         {
+             window.location.href = "srkj://srkj.guoshanchina.com/mobile/share/"+urlp['module']+"/" + urlp['id'];//android app协议
+             document.getElementById('myform').action= "srkj://srkj.guoshanchina.com/mobile/share/"+urlp['module'] + "/" + urlp['id'] + "/";
+             document.getElementById('myform').submit();
+
+             // window.setTimeout(function() {
+             //     window.location.href = "/Index/down";//android 下载地址
+             // }, 2000)
+         }
+         **/
+    </script>
+
+    <style type="text/css">
+        body {
+            background-color: #fff;
+            margin: 0;
+            text-align: center;
+            /*background-image: url("image/mockup.png");*/
+            background-size: 100%;
+            background-repeat: no-repeat;
+        }
+        .btn-default{
+            color: #ffffff;
+            height: 37px;
+            width: 65%;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+        .btn-default:hover, .btn-default:active {
+            cursor: pointer;
+        }
+        #openapp
+        {
+            background: #39bdfb;
+            border: solid 1px #39bdfb;
+        }
+        #downloadapp
+        {
+            color: #272727;
+            background: #dedede;
+            border: solid 1px #dedede;
+            margin: 30px 0;
+        }
+        .cover-img-box{
+            width: 100%;
+        }
+        .cover-img {
+            width: 100%;
+        }
+    </style>
+    <script>
+
+        window.onload = function() {
+
+            urlp=[];u=location.search.replace("?","").split("&").forEach(function(d){e=d.split("=");urlp[e[0]]=e[1];})
+            if(navigator.userAgent.match(/(iPhone|iPod|iPad);?/i)){
+                window.location =  "srkj://srkj.guoshanchina.com/mobile/share/"+urlp['module'] + "/" + urlp['id'];
+                document.getElementById('myform').submit();
+            }
+
+            if(navigator.userAgent.match(/android/i)){
+                window.location =  "srkj://srkj.guoshanchina.com/mobile/share/"+urlp['module'] + "/" + urlp['id'];
+                document.getElementById('myform').action= "srkj://srkj.guoshanchina.com/mobile/share/"+urlp['module'] + "/" + urlp['id'] + "/";
+                document.getElementById('myform').submit();
+
+                //window.setTimeout(function() {
+                //    window.location.href = "http://srkj.guoshanchina.com/upload/shaoer.apk";//android 下载地址
+                //}, 2000)
+            }
+
+
+            <!-- Download URL (TUNE link) for new users to download the app -->
+            //setTimeout("window.location = 'http://hastrk.com/serve?action=click&publisher_id=1&site_id=2';", 1000);
+        }
+    </script>
+
+</head>
+<body>
+    <div class="cover-img-box">
+        <img src="image/bg-img.png" class="cover-img">
+    </div>
+    <form id="myform" name="myform" action="" target="_blank">
+        <input id="openapp"  type="submit" class="btn-default" value="打开少儿空间" />
+    </form>
+
+    <form id="myApp" name="myApp" action="http://srkj.guoshanchina.com/upload/shaoer.apk" target="_blank">
+        <input id="downloadapp" name="downloadapp" class="btn-default" type="submit" value="下载少儿空间" />
+    </form>
+
+</body>
+</html>
+

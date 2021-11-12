@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.website.dao.VideoBarrageDao">
+    <insert id="save" parameterType="xin.xiaoer.modules.website.entity.VideoBarrage" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO video_barrage (
+            user_id,
+            video_id,
+            barrage_time,
+            barrage_state,
+            barrage_id,
+            barrage_style,
+            barrage_content,
+            create_at
+        )
+        VALUES
+            (
+                #{userId},
+                #{videoId},
+                #{barrageTime},
+                #{barrageState},
+                #{barrageId},
+                #{barrageStyle},
+                #{barrageContent},
+                NOW()
+            )
+    </insert>
+
+    <!--某视频弹幕列表-->
+    <select id="getByVideoId" resultType="xin.xiaoer.modules.website.entity.VideoBarrage">
+        SELECT
+            *
+        FROM
+            video_barrage t
+        <include refid="where_clause"/>
+    </select>
+
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="videoId != null and videoId != ''">AND t.video_id = #{videoId}</if>
+        </where>
+    </sql>
+</mapper>

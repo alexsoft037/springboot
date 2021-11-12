@@ -1,0 +1,70 @@
+body{
+    position: relative;
+    }
+.footer {
+	bottom: 0;
+	background-color: #666;
+	width: 100%;
+	margin-top: 60px;
+}
+.footer .copy {
+	color: #b2b2b2;
+	text-align: center;
+	padding: 20px 0;
+}
+.footer .copy .lianjie {
+	text-align: center;
+}
+.footer .copy .lianjie span {
+	white-space: nowrap;
+	font: 12px/24px "宋体";
+	color: #b2b2b2;
+	padding: 0 12px;
+}
+.footer .copy span a {
+	color: #b2b2b2;
+}
+.footer .copy span a:hover {
+	color: #fff;
+}
+.footer .copy p {
+	color: #b2b2b2;
+	font: 12px/24px "宋体";
+	margin: 0;
+	padding: 0;
+	text-align: center;
+}
+.footer .copy p a {
+	color: #b2b2b2;
+}
+.footer .copy p a:hover {
+	color: #fff;
+}
+@media (max-width: 1199px) and (min-width: 992px) {
+.footer {
+	margin-top: 40px;
+}
+}
+@media (max-width: 991px) and (min-width: 768px) {
+.footer {
+	margin-top: 30px;
+}
+.footer .copy .lianjie span {
+	padding: 0 6px;
+}
+.footer .copy {
+	margin: 10px 0 0 0;
+}
+}
+@media (max-width: 767px) {
+.footer {
+	margin-top: 20px;
+}
+.footer .copy {
+	line-height: 16px;
+	margin: 0;
+}
+.footer .copy p {
+	font: 10px/16px "宋体";
+}
+}

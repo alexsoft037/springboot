@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.monitor.dao.ChildrenWatichDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.monitor.entity.ChildrenWatich" id="childrenWatichMap">
+        <result property="watchId" column="watch_id"/>
+        <result property="childrenId" column="children_id"/>
+        <result property="deviceId" column="device_id"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateAt" column="update_at"/>
+        <result property="updateBy" column="update_by"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.monitor.entity.ChildrenWatich">
+		select * from children_watich where watch_id = #{value}
+	</select>
+
+	<select id="getByDeviceId" resultType="xin.xiaoer.modules.monitor.entity.ChildrenWatich">
+		select * from children_watich where device_id = #{value}
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.monitor.entity.ChildrenWatich">
+		select * from children_watich t <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by watch_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from children_watich t  <include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="watchId != null and watchId != ''"> and t.watch_id = #{watchId} </if>
+    		<if test="watchIdVague != null and watchIdVague != ''"> and t.watch_id like concat('%',#{watchIdVague},'%') </if>
+            <if test="childrenId != null and childrenId != ''"> and t.children_id = #{childrenId} </if>
+    		<if test="childrenIdVague != null and childrenIdVague != ''"> and t.children_id like concat('%',#{childrenIdVague},'%') </if>
+            <if test="deviceId != null and deviceId != ''"> and t.device_id = #{deviceId} </if>
+    		<if test="deviceIdVague != null and deviceIdVague != ''"> and t.device_id like concat('%',#{deviceIdVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+    		<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+            <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+    		<if test="createByVague != null and createByVague != ''"> and t.create_by like concat('%',#{createByVague},'%') </if>
+            <if test="updateAt != null and updateAt != ''"> and t.update_at = #{updateAt} </if>
+    		<if test="updateAtVague != null and updateAtVague != ''"> and t.update_at like concat('%',#{updateAtVague},'%') </if>
+            <if test="updateBy != null and updateBy != ''"> and t.update_by = #{updateBy} </if>
+    		<if test="updateByVague != null and updateByVague != ''"> and t.update_by like concat('%',#{updateByVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.monitor.entity.ChildrenWatich" useGeneratedKeys="true" keyProperty="watchId">
+		insert into children_watich
+		(
+			`children_id`, 
+			`device_id`, 
+			`state`, 
+			`create_at`, 
+			`create_by`, 
+			`update_at`, 
+			`update_by`
+		)
+		values
+		(
+			#{childrenId}, 
+			#{deviceId}, 
+			#{state}, 
+			NOW(),
+			#{createBy}, 
+			NOW(),
+			#{updateBy}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.monitor.entity.ChildrenWatich">
+		update children_watich 
+		<set>
+			<if test="childrenId != null">`children_id` = #{childrenId}, </if>
+			<if test="deviceId != null">`device_id` = #{deviceId}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy},</if>
+			`update_at` = NOW()
+		</set>
+		where watch_id = #{watchId}
+	</update>
+	
+	<delete id="delete">
+		delete from children_watich where watch_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from children_watich where watch_id in 
+		<foreach item="watchId" collection="array" open="(" separator="," close=")">
+			#{watchId}
+		</foreach>
+	</delete>
+
+</mapper>

@@ -1,0 +1,2154 @@
+{
+  "code": 0,
+  "data": [
+    {
+      "id": "293",
+      "pId": "226",
+      "name": "用户体系管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "296",
+      "pId": "231",
+      "name": "服务联盟管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "297",
+      "pId": "232",
+      "name": "线下少儿空间管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "298",
+      "pId": "233",
+      "name": "空间快讯管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "5",
+      "pId": "2",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "6",
+      "pId": "2",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "7",
+      "pId": "2",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "8",
+      "pId": "2",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "9",
+      "pId": "3",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "10",
+      "pId": "3",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "11",
+      "pId": "3",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "12",
+      "pId": "3",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "13",
+      "pId": "4",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "14",
+      "pId": "4",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "15",
+      "pId": "4",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "16",
+      "pId": "4",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "258",
+      "pId": "228",
+      "name": "操作历史列表",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "259",
+      "pId": "234",
+      "name": "分类管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "4",
+      "pId": "1",
+      "name": "菜单管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "262",
+      "pId": "235",
+      "name": "空间头条管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "267",
+      "pId": "236",
+      "name": "空间故事管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "269",
+      "pId": "237",
+      "name": "少儿读本管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "271",
+      "pId": "238",
+      "name": "少儿云课堂直播管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "275",
+      "pId": "239",
+      "name": "朋友圈管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "278",
+      "pId": "246",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "283",
+      "pId": "293",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "288",
+      "pId": "256",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "295",
+      "pId": "230",
+      "name": "Banner 图管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "299",
+      "pId": "295",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "305",
+      "pId": "296",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "316",
+      "pId": "260",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "321",
+      "pId": "261",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "326",
+      "pId": "262",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "331",
+      "pId": "263",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "336",
+      "pId": "264",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "341",
+      "pId": "266",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "346",
+      "pId": "268",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "351",
+      "pId": "267",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "356",
+      "pId": "269",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "361",
+      "pId": "270",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "367",
+      "pId": "366",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "372",
+      "pId": "297",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "378",
+      "pId": "377",
+      "name": "HTML管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "379",
+      "pId": "378",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "384",
+      "pId": "259",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "389",
+      "pId": "263",
+      "name": "活动参加查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "394",
+      "pId": "265",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "405",
+      "pId": "404",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "411",
+      "pId": "410",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "416",
+      "pId": "272",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "421",
+      "pId": "273",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "426",
+      "pId": "244",
+      "name": "丢失通知管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "427",
+      "pId": "426",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "433",
+      "pId": "432",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "438",
+      "pId": "275",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "443",
+      "pId": "276",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "448",
+      "pId": "250",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "453",
+      "pId": "251",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "458",
+      "pId": "252",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "463",
+      "pId": "253",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "468",
+      "pId": "242",
+      "name": "反馈管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "469",
+      "pId": "468",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "474",
+      "pId": "249",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "476",
+      "pId": "298",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "225",
+      "pId": "0",
+      "name": "系统设置",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "481",
+      "pId": "271",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "486",
+      "pId": "254",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "492",
+      "pId": "257",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "494",
+      "pId": "240",
+      "name": "用户评论管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "495",
+      "pId": "494",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "500",
+      "pId": "277",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "246",
+      "pId": "225",
+      "name": "第三方接口参数设置",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "255",
+      "pId": "227",
+      "name": "管理员列表",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "256",
+      "pId": "227",
+      "name": "角色列表",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "260",
+      "pId": "234",
+      "name": "项目管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "263",
+      "pId": "235",
+      "name": "活动参与管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "268",
+      "pId": "236",
+      "name": "轮播图管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "270",
+      "pId": "237",
+      "name": "少儿图书管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "272",
+      "pId": "238",
+      "name": "少儿云课堂视频管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "276",
+      "pId": "239",
+      "name": "活动秀管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "279",
+      "pId": "246",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "284",
+      "pId": "293",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "289",
+      "pId": "256",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "300",
+      "pId": "295",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "306",
+      "pId": "296",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "310",
+      "pId": "230",
+      "name": "广告图管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "317",
+      "pId": "260",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "322",
+      "pId": "261",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "327",
+      "pId": "262",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "332",
+      "pId": "263",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "337",
+      "pId": "264",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "342",
+      "pId": "266",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "347",
+      "pId": "268",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "352",
+      "pId": "267",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "357",
+      "pId": "269",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "362",
+      "pId": "270",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "368",
+      "pId": "366",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "373",
+      "pId": "297",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "380",
+      "pId": "378",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "385",
+      "pId": "259",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "390",
+      "pId": "263",
+      "name": "活动参加新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "395",
+      "pId": "265",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "406",
+      "pId": "404",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "412",
+      "pId": "410",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "417",
+      "pId": "272",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "422",
+      "pId": "273",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "428",
+      "pId": "426",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "432",
+      "pId": "244",
+      "name": "实时空间",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "434",
+      "pId": "432",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "439",
+      "pId": "275",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "444",
+      "pId": "276",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "449",
+      "pId": "250",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "454",
+      "pId": "251",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "459",
+      "pId": "252",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "464",
+      "pId": "253",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "470",
+      "pId": "468",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "477",
+      "pId": "298",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "226",
+      "pId": "0",
+      "name": "用户体系管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "482",
+      "pId": "271",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "493",
+      "pId": "257",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "496",
+      "pId": "494",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "501",
+      "pId": "277",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "247",
+      "pId": "225",
+      "name": "短信管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "257",
+      "pId": "227",
+      "name": "权限规则",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "261",
+      "pId": "234",
+      "name": "资金明细管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "264",
+      "pId": "235",
+      "name": "活动报道管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "273",
+      "pId": "238",
+      "name": "空间学习室管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "277",
+      "pId": "239",
+      "name": "聊天群组管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "280",
+      "pId": "246",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "285",
+      "pId": "293",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "290",
+      "pId": "256",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "301",
+      "pId": "295",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "307",
+      "pId": "296",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "318",
+      "pId": "260",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "323",
+      "pId": "261",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "328",
+      "pId": "262",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "333",
+      "pId": "263",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "338",
+      "pId": "264",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "343",
+      "pId": "266",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "348",
+      "pId": "268",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "353",
+      "pId": "267",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "358",
+      "pId": "269",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "363",
+      "pId": "270",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "366",
+      "pId": "237",
+      "name": "分类管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "369",
+      "pId": "366",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "374",
+      "pId": "297",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "381",
+      "pId": "378",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "386",
+      "pId": "259",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "391",
+      "pId": "263",
+      "name": "活动参加修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "396",
+      "pId": "265",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "404",
+      "pId": "238",
+      "name": "课程类型管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "407",
+      "pId": "404",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "413",
+      "pId": "410",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "418",
+      "pId": "272",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "423",
+      "pId": "273",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "429",
+      "pId": "426",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "435",
+      "pId": "432",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "440",
+      "pId": "275",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "445",
+      "pId": "276",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "450",
+      "pId": "250",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "455",
+      "pId": "251",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "460",
+      "pId": "252",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "465",
+      "pId": "253",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "471",
+      "pId": "468",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "478",
+      "pId": "298",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "227",
+      "pId": "0",
+      "name": "角色管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "483",
+      "pId": "271",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "497",
+      "pId": "494",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "502",
+      "pId": "277",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "248",
+      "pId": "225",
+      "name": "APP 版本管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "265",
+      "pId": "235",
+      "name": "小记者管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "281",
+      "pId": "246",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "286",
+      "pId": "293",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "291",
+      "pId": "256",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "302",
+      "pId": "295",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "308",
+      "pId": "296",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "319",
+      "pId": "260",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "324",
+      "pId": "261",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "329",
+      "pId": "262",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "334",
+      "pId": "263",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "339",
+      "pId": "264",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "86",
+      "pId": "1",
+      "name": "部门管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "344",
+      "pId": "266",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "349",
+      "pId": "268",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "354",
+      "pId": "267",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "359",
+      "pId": "269",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "364",
+      "pId": "270",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "370",
+      "pId": "366",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "375",
+      "pId": "297",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "382",
+      "pId": "378",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "387",
+      "pId": "259",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "392",
+      "pId": "263",
+      "name": "活动参加删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "397",
+      "pId": "265",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "408",
+      "pId": "404",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "414",
+      "pId": "410",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "419",
+      "pId": "272",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "424",
+      "pId": "273",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "430",
+      "pId": "426",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "436",
+      "pId": "432",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "441",
+      "pId": "275",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "446",
+      "pId": "276",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "451",
+      "pId": "250",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "456",
+      "pId": "251",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "461",
+      "pId": "252",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "466",
+      "pId": "253",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "472",
+      "pId": "468",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "479",
+      "pId": "298",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "228",
+      "pId": "0",
+      "name": "操作历史",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "484",
+      "pId": "271",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "498",
+      "pId": "494",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "503",
+      "pId": "277",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "249",
+      "pId": "225",
+      "name": "积分管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "266",
+      "pId": "235",
+      "name": "活动评选管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "282",
+      "pId": "246",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "287",
+      "pId": "293",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "292",
+      "pId": "256",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "303",
+      "pId": "295",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "309",
+      "pId": "296",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "320",
+      "pId": "260",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "325",
+      "pId": "261",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "330",
+      "pId": "262",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "335",
+      "pId": "263",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "340",
+      "pId": "264",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "345",
+      "pId": "266",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "350",
+      "pId": "268",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "355",
+      "pId": "267",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "360",
+      "pId": "269",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "365",
+      "pId": "270",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "371",
+      "pId": "366",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "376",
+      "pId": "297",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "383",
+      "pId": "378",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "388",
+      "pId": "259",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "393",
+      "pId": "263",
+      "name": "活动参加启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "398",
+      "pId": "265",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "409",
+      "pId": "404",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "415",
+      "pId": "410",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "420",
+      "pId": "272",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "425",
+      "pId": "273",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "431",
+      "pId": "426",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "437",
+      "pId": "432",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "442",
+      "pId": "275",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "447",
+      "pId": "276",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "452",
+      "pId": "250",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "457",
+      "pId": "251",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "462",
+      "pId": "252",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "467",
+      "pId": "253",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "473",
+      "pId": "468",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "480",
+      "pId": "298",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "485",
+      "pId": "271",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "499",
+      "pId": "494",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "504",
+      "pId": "277",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "250",
+      "pId": "225",
+      "name": "帮助中心",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "17",
+      "pId": "1",
+      "name": "参数管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "21",
+      "pId": "20",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "22",
+      "pId": "20",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "23",
+      "pId": "20",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "24",
+      "pId": "20",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "311",
+      "pId": "310",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "312",
+      "pId": "310",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "313",
+      "pId": "310",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "314",
+      "pId": "310",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "315",
+      "pId": "310",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "81",
+      "pId": "1",
+      "name": "字典管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "82",
+      "pId": "81",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "83",
+      "pId": "81",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "84",
+      "pId": "81",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "85",
+      "pId": "81",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "87",
+      "pId": "86",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "88",
+      "pId": "86",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "89",
+      "pId": "86",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "90",
+      "pId": "86",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "410",
+      "pId": "243",
+      "name": "资源管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "208",
+      "pId": "243",
+      "name": "oss配置",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "209",
+      "pId": "208",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "210",
+      "pId": "208",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "211",
+      "pId": "208",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "212",
+      "pId": "208",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "475",
+      "pId": "248",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "487",
+      "pId": "255",
+      "name": "查看",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "488",
+      "pId": "255",
+      "name": "新增",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "489",
+      "pId": "255",
+      "name": "修改",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "490",
+      "pId": "255",
+      "name": "删除",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "491",
+      "pId": "255",
+      "name": "启用",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "251",
+      "pId": "225",
+      "name": "关于我们",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "18",
+      "pId": "1",
+      "name": "系统日志",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "20",
+      "pId": "1",
+      "name": "地区管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "230",
+      "pId": "0",
+      "name": "Banner 图管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "231",
+      "pId": "0",
+      "name": "服务联盟管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "252",
+      "pId": "225",
+      "name": "隐私协议",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "232",
+      "pId": "0",
+      "name": "线下少儿空间管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "253",
+      "pId": "225",
+      "name": "注册协议",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "233",
+      "pId": "0",
+      "name": "空间快讯管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "254",
+      "pId": "225",
+      "name": "用户积分等级关系",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "234",
+      "pId": "0",
+      "name": "爱心空间",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "235",
+      "pId": "0",
+      "name": "空间活动",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "236",
+      "pId": "0",
+      "name": "空间故事",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "237",
+      "pId": "0",
+      "name": "空间书架",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "238",
+      "pId": "0",
+      "name": "空间课堂",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "239",
+      "pId": "0",
+      "name": "空间秀场",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "240",
+      "pId": "0",
+      "name": "用户评论管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "241",
+      "pId": "0",
+      "name": "系统消息推送",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "242",
+      "pId": "0",
+      "name": "反馈管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "243",
+      "pId": "0",
+      "name": "资源管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "244",
+      "pId": "0",
+      "name": "监控管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "377",
+      "pId": "0",
+      "name": "HTML管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "245",
+      "pId": "0",
+      "name": "陪伴同行管理",
+      "open": "null",
+      "chkDisabled": "false"
+    },
+    {
+      "id": "1",
+      "pId": "0",
+      "name": "系统管理",
+      "open": "null",
+      "chkDisabled": "false"
+    }
+  ]
+}

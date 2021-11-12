@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.classroom.dao.UserLessonDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.classroom.entity.UserLesson" id="userLessonMap">
+        <result property="id" column="id"/>
+        <result property="lessonId" column="lesson_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="readCount" column="read_count"/>
+        <result property="createAt" column="create_at"/>
+        <result property="updateAt" column="update_at"/>
+    </resultMap>
+
+    <select id="get" resultType="xin.xiaoer.modules.classroom.entity.UserLesson">
+		select * from user_lesson where id = #{value}
+	</select>
+
+    <select id="getByUserAndLesson" resultType="xin.xiaoer.modules.classroom.entity.UserLesson">
+		select *
+		from user_lesson
+		where lesson_id = #{lessonId}
+		and user_id = #{userId}
+		limit 1
+	</select>
+
+    <select id="getByUser" resultType="Map">
+			SELECT t.*,sf.url
+FROM
+(SELECT COUNT(u.user_id) AS people,sh.*
+			FROM sharing_lesson sh
+			LEFT JOIN
+			(SELECT ul.lesson_id
+			FROM sharing_lesson sl
+			LEFT JOIN user_lesson ul
+			ON sl.lesson_id = ul.lesson_id) t
+			ON sh.lesson_id = t.lesson_id
+			LEFT JOIN
+			user_lesson u
+			ON u.lesson_id = sh.lesson_id
+			WHERE u.user_id =#{userId}
+			GROUP BY sh.lesson_id) t
+			LEFT JOIN sys_file sf
+			ON t.featured_image = sf.upload_id
+        <if test="offset !=null and limit !=null">
+            limit #{offset},#{limit}
+        </if>
+	</select>
+
+    <select id="getUserCount" resultType="int">
+		SELECT COUNT(ul.lesson_id)
+		FROM user_lesson ul
+		WHERE ul.user_id =#{userId}
+	</select>
+
+    <select id="getList" resultType="xin.xiaoer.modules.classroom.entity.SharingLesson">
+        select * from user_lesson t
+        LEFT JOIN sharing_lesson sl
+        ON t.lesson_id = sl.lesson_id
+        <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="getCount" resultType="int">
+        select count(*) from user_lesson t  <include refid="where_clause" />
+    </select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="id != null and id != ''"> and t.id = #{id} </if>
+            <if test="idVague != null and idVague != ''"> and t.id like concat('%',#{idVague},'%') </if>
+            <if test="lessonId != null and lessonId != ''"> and t.lesson_id = #{lessonId} </if>
+            <if test="lessonIdVague != null and lessonIdVague != ''"> and t.lesson_id like concat('%',#{lessonIdVague},'%') </if>
+            <if test="userId != null and userId != ''"> and t.user_id = #{userId} </if>
+            <if test="userIdVague != null and userIdVague != ''"> and t.user_id like concat('%',#{userIdVague},'%') </if>
+            <if test="readCount != null and readCount != ''"> and t.read_count = #{readCount} </if>
+            <if test="readCountVague != null and readCountVague != ''"> and t.read_count like concat('%',#{readCountVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+            <if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+            <if test="updateAt != null and updateAt != ''"> and t.update_at = #{updateAt} </if>
+            <if test="updateAtVague != null and updateAtVague != ''"> and t.update_at like concat('%',#{updateAtVague},'%') </if>
+        </where>
+    </sql>
+
+    <insert id="save" parameterType="xin.xiaoer.modules.classroom.entity.UserLesson" useGeneratedKeys="true" keyProperty="id">
+		insert into user_lesson
+		(
+			`lesson_id`, 
+			`user_id`, 
+			`read_count`, 
+			`create_at`, 
+			`update_at`
+		)
+		values
+		(
+			#{lessonId}, 
+			#{userId}, 
+			#{readCount}, 
+			NOW(),
+			NOW()
+		)
+	</insert>
+
+    <update id="update" parameterType="xin.xiaoer.modules.classroom.entity.UserLesson">
+        update user_lesson
+        <set>
+            <if test="lessonId != null">`lesson_id` = #{lessonId}, </if>
+            <if test="userId != null">`user_id` = #{userId}, </if>
+            <if test="readCount != null">`read_count` = #{readCount}, </if>
+            `update_at` = NOW()
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="delete">
+		delete from user_lesson where id = #{value}
+	</delete>
+
+    <delete id="deleteBatch">
+        delete from user_lesson where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

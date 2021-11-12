@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.classroom.dao.StudyAttendDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.classroom.entity.StudyAttend" id="studyAttendMap">
+        <result property="id" column="id"/>
+        <result property="roomId" column="room_id"/>
+		<result property="title" column="title"/>
+        <result property="userId" column="user_id"/>
+		<result property="userName" column="user_name"/>
+		<result property="avatar" column="avatar"/>
+        <result property="createAt" column="create_at"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.classroom.entity.StudyAttend">
+		select *
+		from study_attend
+		where id = #{value}
+	</select>
+
+	<select id="getByUserAndRoom" resultType="xin.xiaoer.modules.classroom.entity.StudyAttend">
+		select *
+		from study_attend
+		where room_id = #{roomId}
+		and user_id = #{userId}
+		limit 1
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.classroom.entity.StudyAttend">
+		select * from (select sa.*,
+				sr.title,
+				su.nickname AS user_name,
+				su.avatar
+			from study_attend sa, study_room sr, sys_user su
+			where sa.user_id = su.user_id
+			AND sa.room_id = sr.room_id) t
+		<include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from (select sa.*,
+				sr.title,
+				su.nickname AS user_name,
+				su.avatar
+			from study_attend sa, study_room sr, sys_user su
+			where sa.user_id = su.user_id
+			AND sa.room_id = sr.room_id) t
+		<include refid="where_clause" />
+	</select>
+
+	<select id="getCountByRoomId" resultType="int">
+		select count(*)
+		from (select * from study_attend GROUP BY room_id, user_id) as t
+		where t.room_id = #{roomId}
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="id != null and id != ''"> and t.id = #{id} </if>
+    		<if test="idVague != null and idVague != ''"> and t.id like concat('%',#{idVague},'%') </if>
+            <if test="roomId != null and roomId != ''"> and t.room_id = #{roomId} </if>
+    		<if test="roomIdVague != null and roomIdVague != ''"> and t.room_id like concat('%',#{roomIdVague},'%') </if>
+            <if test="userId != null and userId != ''"> and t.user_id = #{userId} </if>
+    		<if test="userIdVague != null and userIdVague != ''"> and t.user_id like concat('%',#{userIdVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.classroom.entity.StudyAttend" useGeneratedKeys="true" keyProperty="id">
+		insert into study_attend
+		(
+			`room_id`, 
+			`user_id`, 
+			`create_at`
+		)
+		values
+		(
+			#{roomId}, 
+			#{userId}, 
+			NOW()
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.classroom.entity.StudyAttend">
+		update study_attend 
+		<set>
+			<if test="roomId != null">`room_id` = #{roomId}, </if>
+			<if test="userId != null">`user_id` = #{userId}, </if>
+			`create_at` = NOW()
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from study_attend where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from study_attend where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

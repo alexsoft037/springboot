@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.chat.dao.ChatGroupDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.chat.entity.ChatGroup" id="chatGroupMap">
+        <result property="spaceId" column="space_id"/>
+        <result property="groupName" column="group_name"/>
+		<result property="owner" column="owner"/>
+        <result property="tid" column="tid"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.chat.entity.ChatGroup">
+		select * from chat_group where space_id = #{value}
+	</select>
+
+	<select id="getListByUser" resultType="xin.xiaoer.modules.chat.entity.ChatGroup">
+		select t.*
+		from chat_group t, (select * from chat_group_user group by space_id, user_id) cgu
+		where t.state = '1'
+		and t.space_id = cgu.space_id
+		and cgu.user_id = #{userId}
+	</select>
+
+	<select id="getAdminList" resultType="xin.xiaoer.modules.chat.entity.ChatGroup">
+		select t.*, cgu.user_count from chat_group t
+		left join (select cgu.space_id, count(cgu.user_id) as user_count
+			from chat_group_user cgu, sys_user su
+			where cgu.user_id = su.user_id
+			group by cgu.space_id) cgu
+		on t.space_id = cgu.space_id
+		<include refid="where_clause" />
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by ${sidx} ${order}
+			</when>
+			<otherwise>
+				order by space_id desc
+			</otherwise>
+		</choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<select id="getAdminCount" resultType="int">
+		select count(*) from chat_group t
+			left join (select cgu.space_id, count(cgu.user_id) as user_count
+			from chat_group_user cgu, sys_user su
+			where cgu.user_id = su.user_id
+			group by cgu.space_id) cgu
+		on t.space_id = cgu.space_id
+		<include refid="where_clause" />
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.chat.entity.ChatGroup">
+		select * from chat_group t <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by space_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from chat_group t  <include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="spaceId != null and spaceId != ''"> and t.space_id = #{spaceId} </if>
+    		<if test="spaceIdVague != null and spaceIdVague != ''"> and t.space_id like concat('%',#{spaceIdVague},'%') </if>
+            <if test="groupName != null and groupName != ''"> and t.group_name = #{groupName} </if>
+    		<if test="groupNameVague != null and groupNameVague != ''"> and t.group_name like concat('%',#{groupNameVague},'%') </if>
+            <if test="tid != null and tid != ''"> and t.tid = #{tid} </if>
+    		<if test="tidVague != null and tidVague != ''"> and t.tid like concat('%',#{tidVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+    		<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.chat.entity.ChatGroup">
+		insert into chat_group
+		(
+			`space_id`, 
+			`group_name`,
+			`owner`,
+			`tid`, 
+			`state`, 
+			`create_at`
+		)
+		values
+		(
+			#{spaceId}, 
+			#{groupName},
+			#{owner},
+			#{tid}, 
+			#{state}, 
+			NOW()
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.chat.entity.ChatGroup">
+		update chat_group 
+		<set>
+			<if test="groupName != null">`group_name` = #{groupName}, </if>
+			<if test="owner != null">`owner` = #{owner}, </if>
+			<if test="tid != null">`tid` = #{tid}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			`create_at` = NOW()
+		</set>
+		where space_id = #{spaceId}
+	</update>
+	
+	<delete id="delete">
+		delete from chat_group where space_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from chat_group where space_id in 
+		<foreach item="spaceId" collection="array" open="(" separator="," close=")">
+			#{spaceId}
+		</foreach>
+	</delete>
+
+</mapper>

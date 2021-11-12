@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.monitor.dao.CameraCaptureDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.monitor.entity.CameraCapture" id="cameraCaptureMap">
+        <result property="id" column="id"/>
+        <result property="spaceId" column="space_id"/>
+        <result property="deviceId" column="device_id"/>
+		<result property="userId" column="user_id"/>
+        <result property="picUrl" column="pic_url"/>
+        <result property="createAt" column="create_at"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.monitor.entity.CameraCapture">
+		select * from camera_capture where id = #{value}
+	</select>
+
+
+	<select id="getDateList" resultType="java.lang.String">
+		select DATE_FORMAT(cap.create_at, '%Y-%m-%d') as `date`
+		from camera_capture cap
+		where 1 = 1
+		and cap.user_id = #{userId}
+		group by DATE_FORMAT(cap.create_at, '%Y-%m-%d')
+		order by cap.id asc
+	</select>
+
+	<select id="getCaptureList" resultType="xin.xiaoer.modules.monitor.entity.CameraCapture">
+		select cap.id,
+			cap.device_id,
+			cap.user_id,
+			cap.space_id,
+			cap.create_at,
+			file.url as pic_url
+		from camera_capture cap, sys_file file
+		where 1 = 1
+		and file.upload_id = cap.pic_url
+		and DATE_FORMAT(cap.create_at, '%Y-%m-%d') = DATE_FORMAT(#{date}, '%Y-%m-%d')
+		and cap.user_id = #{userId}
+		order by cap.id asc
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.monitor.entity.CameraCapture">
+		select * from camera_capture t <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from camera_capture t  <include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="id != null and id != ''"> and t.id = #{id} </if>
+    		<if test="idVague != null and idVague != ''"> and t.id like concat('%',#{idVague},'%') </if>
+			<if test="spaceId != null and spaceId != ''"> and t.space_id = #{spaceId} </if>
+			<if test="userId != null and userId != ''"> and t.user_id = #{userId} </if>
+            <if test="deviceId != null and deviceId != ''"> and t.device_id = #{deviceId} </if>
+    		<if test="deviceIdVague != null and deviceIdVague != ''"> and t.device_id like concat('%',#{deviceIdVague},'%') </if>
+            <if test="picUrl != null and picUrl != ''"> and t.pic_url = #{picUrl} </if>
+    		<if test="picUrlVague != null and picUrlVague != ''"> and t.pic_url like concat('%',#{picUrlVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.monitor.entity.CameraCapture" useGeneratedKeys="true" keyProperty="id">
+		insert into camera_capture
+		(
+			`device_id`,
+			`space_id`,
+			`user_id`,
+			`pic_url`, 
+			`create_at`
+		)
+		values
+		(
+			#{deviceId},
+			#{spaceId},
+			#{userId},
+			#{picUrl}, 
+			NOW()
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.monitor.entity.CameraCapture">
+		update camera_capture 
+		<set>
+			<if test="deviceId != null">`device_id` = #{deviceId}, </if>
+			<if test="spaceId != null">`space_id` = #{spaceId}, </if>
+			<if test="userId != null">`user_id` = #{userId}, </if>
+			<if test="picUrl != null">`pic_url` = #{picUrl}, </if>
+			`create_at` = NOW()
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from camera_capture where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from camera_capture where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

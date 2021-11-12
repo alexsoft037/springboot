@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.reporterranking.dao.ReporterRankingDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.reporterranking.entity.ReporterRanking" id="reporterRankingMap">
+        <result property="userId" column="user_id"/>
+		<result property="userName" column="user_name"/>
+		<result property="avatar" column="avatar"/>
+        <result property="integral" column="integral"/>
+        <result property="createAt" column="create_at"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.reporterranking.entity.ReporterRanking">
+		select * from reporter_ranking where user_id = #{value}
+	</select>
+
+	<select id="getThisMonthRanking" resultType="xin.xiaoer.modules.reporterranking.entity.ReporterRanking">
+		SELECT rank.*,
+			us.nickname AS user_name,
+			us.avatar AS avatar
+		FROM (select ranking.user_id,
+				sum(ranking.integral) AS integral
+			from reporter_ranking ranking
+			where 1 =1
+			<if test="value != null and value != ''"> and ranking.user_id = #{value} </if>
+			AND ranking.create_at <![CDATA[>=]]> DATE_FORMAT(NOW() ,'%Y-%m-01')
+			GROUP BY ranking.user_id) as rank, sys_user us
+		WHERE us.user_id = rank.user_id
+		ORDER BY rank.integral DESC
+		LIMIT 10
+	</select>
+
+	<select id="getThisWeekRanking" resultType="xin.xiaoer.modules.reporterranking.entity.ReporterRanking">
+		SELECT rank.*,
+			us.nickname AS user_name,
+			us.avatar AS avatar
+		FROM (select ranking.user_id,
+				sum(ranking.integral) AS integral
+			from reporter_ranking ranking
+			where 1 =1
+			<if test="value != null and value != ''"> and ranking.user_id = #{value} </if>
+			AND ranking.create_at <![CDATA[>=]]> DATE_FORMAT(SUBDATE(NOW(), WEEKDAY(NOW())), '%Y-%m-%d')
+			GROUP BY ranking.user_id) AS rank, sys_user us
+		WHERE us.user_id = rank.user_id
+		ORDER BY rank.integral DESC
+		LIMIT 10
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.reporterranking.entity.ReporterRanking">
+		select * from reporter_ranking t <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by user_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from reporter_ranking t  <include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="userId != null and userId != ''"> and t.user_id = #{userId} </if>
+    		<if test="userIdVague != null and userIdVague != ''"> and t.user_id like concat('%',#{userIdVague},'%') </if>
+            <if test="integral != null and integral != ''"> and t.integral = #{integral} </if>
+    		<if test="integralVague != null and integralVague != ''"> and t.integral like concat('%',#{integralVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.reporterranking.entity.ReporterRanking">
+		insert into reporter_ranking
+		(
+			`user_id`, 
+			`integral`, 
+			`create_at`
+		)
+		values
+		(
+			#{userId}, 
+			#{integral}, 
+			NOW()
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.reporterranking.entity.ReporterRanking">
+		update reporter_ranking 
+		<set>
+			<if test="integral != null">`integral` = #{integral}, </if>
+			`create_at` = NOW()
+		</set>
+		where user_id = #{userId}
+	</update>
+	
+	<delete id="delete">
+		delete from reporter_ranking where user_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from reporter_ranking where user_id in 
+		<foreach item="userId" collection="array" open="(" separator="," close=")">
+			#{userId}
+		</foreach>
+	</delete>
+
+</mapper>

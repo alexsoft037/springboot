@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.share.dao.ShareDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.share.entity.Share" id="shareMap">
+        <result property="shareId" column="share_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="articleTypeCode" column="article_type_code"/>
+        <result property="articleId" column="article_id"/>
+        <result property="createAt" column="create_at"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.share.entity.Share">
+		select * from share where share_id = #{value}
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.share.entity.Share">
+		select * from share t <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by share_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from share t  <include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="shareId != null and shareId != ''"> and t.share_id = #{shareId} </if>
+    		<if test="shareIdVague != null and shareIdVague != ''"> and t.share_id like concat('%',#{shareIdVague},'%') </if>
+            <if test="userId != null and userId != ''"> and t.user_id = #{userId} </if>
+    		<if test="userIdVague != null and userIdVague != ''"> and t.user_id like concat('%',#{userIdVague},'%') </if>
+            <if test="articleTypeCode != null and articleTypeCode != ''"> and t.article_type_code = #{articleTypeCode} </if>
+    		<if test="articleTypeCodeVague != null and articleTypeCodeVague != ''"> and t.article_type_code like concat('%',#{articleTypeCodeVague},'%') </if>
+            <if test="articleId != null and articleId != ''"> and t.article_id = #{articleId} </if>
+    		<if test="articleIdVague != null and articleIdVague != ''"> and t.article_id like concat('%',#{articleIdVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.share.entity.Share" useGeneratedKeys="true" keyProperty="shareId">
+		insert into share
+		(
+			`user_id`, 
+			`article_type_code`, 
+			`article_id`, 
+			`create_at`
+		)
+		values
+		(
+			#{userId}, 
+			#{articleTypeCode}, 
+			#{articleId}, 
+			NOW()
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.share.entity.Share">
+		update share 
+		<set>
+			<if test="userId != null">`user_id` = #{userId}, </if>
+			<if test="articleTypeCode != null">`article_type_code` = #{articleTypeCode}, </if>
+			<if test="articleId != null">`article_id` = #{articleId}, </if>
+			<if test="createAt != null">`create_at` = NOW()</if>
+		</set>
+		where share_id = #{shareId}
+	</update>
+	
+	<delete id="delete">
+		delete from share where share_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from share where share_id in 
+		<foreach item="shareId" collection="array" open="(" separator="," close=")">
+			#{shareId}
+		</foreach>
+	</delete>
+
+</mapper>

@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.setting.dao.FollowDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.setting.entity.Follow" id="followMap">
+        <result property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="followId" column="follow_id"/>
+		<association property="user" column="user_id" javaType="xin.xiaoer.entity.SysUser" select="selectUser"/>
+    </resultMap>
+
+	<sql id="userMapping">
+	 	su.user_id as userId,
+		 su.username as username,
+        su.`nickname` as nickname,
+        su.email as email,
+        su.phone_no as phoneNo,
+        su.personality as personality,
+        su.gender as gender,
+        su.`address` as address,
+        su.create_time as createTime,
+        su.active_rate as activeRate,
+        su.is_online as isOnline
+	</sql>
+
+	<select id="selectUser" parameterType="java.lang.Long" resultType="xin.xiaoer.entity.SysUser">
+		select <include refid="userMapping"/>,
+			file.url as avatar
+		from sys_user su
+		left join sys_file `file`
+		on `file`.upload_id = su.avatar
+		where user_id = #{user_id}
+	</select>
+
+	<select id="get" resultType="xin.xiaoer.modules.setting.entity.Follow">
+		select * from follow where id = #{value}
+	</select>
+
+	<select id="getByUserIdAndFollowId" resultType="xin.xiaoer.modules.setting.entity.Follow">
+		select * from follow where user_id = #{userId} and follow_id = #{followId} limit 1
+	</select>
+
+	<select id="getListByFollowId" resultMap="followMap">
+		select t.id,
+		t.user_id,
+		file.url as avatar
+		from (select fl.*,
+				su.avatar
+			from follow fl, sys_user su
+			where fl.user_id = su.user_id
+			group by fl.user_id, fl.follow_id) t
+		left join sys_file file
+		on file.upload_id = t.avatar
+		<include refid="where_clause" />
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by ${sidx} ${order}
+			</when>
+			<otherwise>
+				order by id desc
+			</otherwise>
+		</choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<select id="getAccountListByFollowId" resultType="java.lang.String">
+		select cu.accid
+		from (select * from follow group by user_id, follow_id) t, sys_user su, chat_user cu
+		<include refid="where_clause" />
+		and t.user_id = su.user_id
+		and su.user_id = cu.user_id
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by ${sidx} ${order}
+			</when>
+			<otherwise>
+				order by id desc
+			</otherwise>
+		</choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<select id="getListByUserId" resultMap="followMap">
+		select t.id,
+			t.follow_id as user_id,
+			file.url as avatar
+		from (select fl.*,
+			su.avatar
+			from follow fl, sys_user su
+			where fl.follow_id = su.user_id
+			group by fl.user_id, fl.follow_id) t
+		left join sys_file file
+		on file.upload_id = t.avatar
+		<include refid="where_clause" />
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by ${sidx} ${order}
+			</when>
+			<otherwise>
+				order by id desc
+			</otherwise>
+		</choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.setting.entity.Follow">
+		select t.* from (select * from follow group by user_id, follow_id) t, sys_user su, sys_user fw
+		<include refid="where_clause" />
+		and su.user_id = t.user_id
+		and fw.user_id = t.follow_id
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from (select * from follow group by user_id, follow_id) t, sys_user su, sys_user fw
+		<include refid="where_clause" />
+		and su.user_id = t.user_id
+		and fw.user_id = t.follow_id
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="id != null and id != ''"> and t.id = #{id} </if>
+    		<if test="idVague != null and idVague != ''"> and t.id like concat('%',#{idVague},'%') </if>
+            <if test="userId != null and userId != ''"> and t.user_id = #{userId} </if>
+    		<if test="userIdVague != null and userIdVague != ''"> and t.user_id like concat('%',#{userIdVague},'%') </if>
+            <if test="followId != null and followId != ''"> and t.follow_id = #{followId} </if>
+    		<if test="followIdVague != null and followIdVague != ''"> and t.follow_id like concat('%',#{followIdVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.setting.entity.Follow" useGeneratedKeys="true" keyProperty="id">
+		insert into follow
+		(
+			`user_id`, 
+			`follow_id`
+		)
+		values
+		(
+			#{userId}, 
+			#{followId}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.setting.entity.Follow">
+		update follow 
+		<set>
+			<if test="userId != null">`user_id` = #{userId}, </if>
+			<if test="followId != null">`follow_id` = #{followId}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from follow where id = #{value}
+	</delete>
+
+	<delete id="deleteByUserIdAndFollowId">
+		delete from follow where user_id = #{userId} and follow_id = #{followId}
+	</delete>
+
+	<delete id="deleteBatch">
+		delete from follow where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.advert.dao.XeAdvertDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.advert.entity.XeAdvert" id="xeAdvertMap">
+        <result property="id" column="id"/>
+        <result property="adUrl" column="ad_url"/>
+        <result property="adName" column="ad_name"/>
+        <result property="adContent" column="ad_content"/>
+        <result property="adImagePath" column="ad_image_path"/>
+		<result property="articleType" column="article_type"/>
+		<result property="articleTypeName" column="article_type_name"/>
+		<result property="articleId" column="article_id"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateAt" column="update_at"/>
+        <result property="updateBy" column="update_by"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.advert.entity.XeAdvert">
+		select * from xe_advert where id = #{value}
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.advert.entity.XeAdvert">
+		select * from (SELECT ban.*, artType.para_name AS article_type_name FROM xe_advert ban
+			LEFT JOIN sys_commpara artType
+			ON artType.para_key = ban.article_type) t
+		<include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from (SELECT ban.*, artType.para_name AS article_type_name FROM xe_advert ban
+			LEFT JOIN sys_commpara artType
+			ON artType.para_key = ban.article_type) t
+		<include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="id != null and id != ''"> and t.id = #{id} </if>
+    		<if test="idVague != null and idVague != ''"> and t.id like concat('%',#{idVague},'%') </if>
+            <if test="adUrl != null and adUrl != ''"> and t.ad_url = #{adUrl} </if>
+    		<if test="adUrlVague != null and adUrlVague != ''"> and t.ad_url like concat('%',#{adUrlVague},'%') </if>
+            <if test="adName != null and adName != ''"> and t.ad_name = #{adName} </if>
+    		<if test="adNameVague != null and adNameVague != ''"> and t.ad_name like concat('%',#{adNameVague},'%') </if>
+            <if test="adContent != null and adContent != ''"> and t.ad_content = #{adContent} </if>
+    		<if test="adContentVague != null and adContentVague != ''"> and t.ad_content like concat('%',#{adContentVague},'%') </if>
+            <if test="adImagePath != null and adImagePath != ''"> and t.ad_image_path = #{adImagePath} </if>
+    		<if test="adImagePathVague != null and adImagePathVague != ''"> and t.ad_image_path like concat('%',#{adImagePathVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+    		<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+            <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+    		<if test="createByVague != null and createByVague != ''"> and t.create_by like concat('%',#{createByVague},'%') </if>
+            <if test="updateAt != null and updateAt != ''"> and t.update_at = #{updateAt} </if>
+    		<if test="updateAtVague != null and updateAtVague != ''"> and t.update_at like concat('%',#{updateAtVague},'%') </if>
+            <if test="updateBy != null and updateBy != ''"> and t.update_by = #{updateBy} </if>
+    		<if test="updateByVague != null and updateByVague != ''"> and t.update_by like concat('%',#{updateByVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.advert.entity.XeAdvert" useGeneratedKeys="true" keyProperty="id">
+		insert into xe_advert
+		(
+			`ad_url`, 
+			`ad_name`, 
+			`ad_content`, 
+			`ad_image_path`,
+			`article_type`,
+			`article_id`,
+			`state`, 
+			`create_at`, 
+			`create_by`, 
+			`update_at`, 
+			`update_by`
+		)
+		values
+		(
+			#{adUrl}, 
+			#{adName}, 
+			#{adContent}, 
+			#{adImagePath},
+			#{articleType},
+			#{articleId},
+			#{state}, 
+			NOW(),
+			#{createBy}, 
+			NOW(),
+			#{updateBy}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.advert.entity.XeAdvert">
+		update xe_advert 
+		<set>
+			<if test="adUrl != null">`ad_url` = #{adUrl}, </if>
+			<if test="adName != null">`ad_name` = #{adName}, </if>
+			<if test="adContent != null">`ad_content` = #{adContent}, </if>
+			<if test="adImagePath != null">`ad_image_path` = #{adImagePath}, </if>
+			<if test="articleType != null">`article_type` = #{articleType},</if>
+			<if test="articleId != null">`article_id` = #{articleId},</if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy},</if>
+			`update_at` = NOW()
+		</set>
+		where id = #{id}
+	</update>
+
+	<update id="removeArticle">
+		update xe_advert
+		<set>
+			`article_type` = NULL,
+			`article_id` = NULL
+		</set>
+		where article_type = #{articleType} AND article_id = #{articleId}
+	</update>
+	
+	<delete id="delete">
+		delete from xe_advert where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from xe_advert where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

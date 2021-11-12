@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.activity.dao.ActivityAttendDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.activity.entity.ActivityAttend" id="activityAttendMap">
+		<result property="id" column="id"/>
+        <result property="activityId" column="activity_id"/>
+		<result property="activityTitle" column="activity_title"/>
+        <result property="userId" column="user_id"/>
+		<result property="userName" column="user_name"/>
+		<result property="avatar" column="avatar"/>
+        <result property="state" column="state"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.activity.entity.ActivityAttend">
+		select attend.*,
+			us.nickname as user_name,
+			us.avatar as avatar
+		from activity_attend attend, sys_user us
+		where attend.id = #{value}
+		AND attend.user_id = us.user_id
+	</select>
+
+	<select id="queryAttendTotal" resultType="int">
+		select count(*) from (select att.user_id, att.activity_id
+			from activity_attend att, sys_user su, activity act
+			where att.activity_id = act.activity_id
+			and act.state = '1'
+			and su.user_id = att.user_id
+			and su.status = 1
+			group by user_id) att
+	</select>
+
+	<select id="getByUserIdAndActivityId" resultType="xin.xiaoer.modules.activity.entity.ActivityAttend">
+		select attend.*,
+			us.nickname as user_name,
+			us.avatar as avatar
+		from activity_attend attend, sys_user us
+		where attend.activity_id = #{activityId}
+		AND attend.user_id = #{userId}
+		AND attend.user_id = us.user_id
+		LIMIT 1
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.activity.entity.ActivityAttend">
+		select t.*
+		from (select t.*,
+			us.nickname as user_name,
+			act.title AS activity_title,
+			us.avatar as avatar
+			from activity_attend t, sys_user us, activity act
+			WHERE t.user_id = us.user_id
+			AND act.activity_id = t.activity_id) t
+		<include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by t.${sidx} ${order}
+            </when>
+			<otherwise>
+                order by t.activity_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*)
+		from (select t.*,
+			us.nickname as user_name,
+			act.title AS activity_title,
+			us.avatar as avatar
+			from activity_attend t, sys_user us, activity act
+			WHERE t.user_id = us.user_id
+			AND act.activity_id = t.activity_id) t
+		<include refid="where_clause" />
+	</select>
+
+	<select id="getCountByActivityId" resultType="int">
+		select count(*) FROM (SELECT *
+		from activity_attend t
+		GROUP BY t.activity_id, t.user_id) AS attend
+		WHERE attend.activity_id = #{value}
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+			<if test="id != null and id != ''"> and t.activity_id = #{id} </if>
+            <if test="activityId != null and activityId != ''"> and t.activity_id = #{activityId} </if>
+    		<if test="activityIdVague != null and activityIdVague != ''"> and t.activity_id like concat('%',#{activityIdVague},'%') </if>
+            <if test="userId != null and userId != ''"> and t.user_id = #{userId} </if>
+    		<if test="userIdVague != null and userIdVague != ''"> and t.user_id like concat('%',#{userIdVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+    		<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createTime != null and createTime != ''"> and t.create_time = #{createTime} </if>
+    		<if test="createTimeVague != null and createTimeVague != ''"> and t.create_time like concat('%',#{createTimeVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.activity.entity.ActivityAttend">
+		insert into activity_attend
+		(
+			`activity_id`, 
+			`user_id`, 
+			`state`, 
+			`create_time`
+		)
+		values
+		(
+			#{activityId}, 
+			#{userId}, 
+			#{state}, 
+			DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S')
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.activity.entity.ActivityAttend">
+		update activity_attend 
+		<set>
+			<if test="userId != null">`user_id` = #{userId}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			`create_time` = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S')
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from activity_attend where id = #{value}
+	</delete>
+
+	<delete id="deleteByActivityId">
+		delete from activity_attend where activity_id = #{value}
+	</delete>
+
+	<delete id="deleteBatch">
+		delete from activity_attend where id in
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

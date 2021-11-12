@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.monitor.dao.SpaceCameraDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.monitor.entity.SpaceCamera" id="spaceCameraMap">
+        <result property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="spaceId" column="space_id"/>
+		<result property="serialNo" column="serial_no"/>
+        <result property="url" column="url"/>
+        <result property="img" column="img"/>
+        <result property="mapImg" column="map_img"/>
+        <result property="address" column="address"/>
+        <result property="city" column="city"/>
+        <result property="district" column="district"/>
+        <result property="province" column="province"/>
+        <result property="street" column="street"/>
+        <result property="latitude" column="latitude"/>
+        <result property="longitude" column="longitude"/>
+        <result property="remark" column="remark"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateAt" column="update_at"/>
+        <result property="updateBy" column="update_by"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.monitor.entity.SpaceCamera">
+		select * from space_camera where id = #{value}
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.monitor.entity.SpaceCamera">
+		select t.*,
+		       sp.space_name
+		from space_camera t
+		left join space sp
+		on sp.space_id = t.space_id
+		<include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from space_camera t
+		<include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="id != null and id != ''"> and t.id = #{id} </if>
+    		<if test="idVague != null and idVague != ''"> and t.id like concat('%',#{idVague},'%') </if>
+            <if test="title != null and title != ''"> and t.title = #{title} </if>
+    		<if test="titleVague != null and titleVague != ''"> and t.title like concat('%',#{titleVague},'%') </if>
+			<if test="spaceId != null and spaceId != ''"> and t.space_id = #{spaceId} </if>
+            <if test="url != null and url != ''"> and t.url = #{url} </if>
+    		<if test="urlVague != null and urlVague != ''"> and t.url like concat('%',#{urlVague},'%') </if>
+            <if test="img != null and img != ''"> and t.img = #{img} </if>
+    		<if test="imgVague != null and imgVague != ''"> and t.img like concat('%',#{imgVague},'%') </if>
+            <if test="mapImg != null and mapImg != ''"> and t.map_img = #{mapImg} </if>
+    		<if test="mapImgVague != null and mapImgVague != ''"> and t.map_img like concat('%',#{mapImgVague},'%') </if>
+            <if test="address != null and address != ''"> and t.address = #{address} </if>
+    		<if test="addressVague != null and addressVague != ''"> and t.address like concat('%',#{addressVague},'%') </if>
+            <if test="city != null and city != ''"> and t.city = #{city} </if>
+    		<if test="cityVague != null and cityVague != ''"> and t.city like concat('%',#{cityVague},'%') </if>
+            <if test="district != null and district != ''"> and t.district = #{district} </if>
+    		<if test="districtVague != null and districtVague != ''"> and t.district like concat('%',#{districtVague},'%') </if>
+            <if test="province != null and province != ''"> and t.province = #{province} </if>
+    		<if test="provinceVague != null and provinceVague != ''"> and t.province like concat('%',#{provinceVague},'%') </if>
+            <if test="street != null and street != ''"> and t.street = #{street} </if>
+    		<if test="streetVague != null and streetVague != ''"> and t.street like concat('%',#{streetVague},'%') </if>
+            <if test="latitude != null and latitude != ''"> and t.latitude = #{latitude} </if>
+    		<if test="latitudeVague != null and latitudeVague != ''"> and t.latitude like concat('%',#{latitudeVague},'%') </if>
+            <if test="longitude != null and longitude != ''"> and t.longitude = #{longitude} </if>
+    		<if test="longitudeVague != null and longitudeVague != ''"> and t.longitude like concat('%',#{longitudeVague},'%') </if>
+            <if test="remark != null and remark != ''"> and t.remark = #{remark} </if>
+    		<if test="remarkVague != null and remarkVague != ''"> and t.remark like concat('%',#{remarkVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+    		<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+            <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+    		<if test="createByVague != null and createByVague != ''"> and t.create_by like concat('%',#{createByVague},'%') </if>
+            <if test="updateAt != null and updateAt != ''"> and t.update_at = #{updateAt} </if>
+    		<if test="updateAtVague != null and updateAtVague != ''"> and t.update_at like concat('%',#{updateAtVague},'%') </if>
+            <if test="updateBy != null and updateBy != ''"> and t.update_by = #{updateBy} </if>
+    		<if test="updateByVague != null and updateByVague != ''"> and t.update_by like concat('%',#{updateByVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.monitor.entity.SpaceCamera" useGeneratedKeys="true" keyProperty="id">
+		insert into space_camera
+		(
+			`title`,
+			`space_id`,
+			`serial_no`,
+			`url`, 
+			`img`,
+			`map_img`,
+			`address`, 
+			`city`, 
+			`district`, 
+			`province`, 
+			`street`, 
+			`latitude`, 
+			`longitude`, 
+			`remark`, 
+			`state`, 
+			`create_at`, 
+			`create_by`, 
+			`update_at`, 
+			`update_by`
+		)
+		values
+		(
+			#{title},
+			#{spaceId},
+			#{serialNo},
+			#{url}, 
+			#{img},
+			#{mapImg},
+			#{address}, 
+			#{city}, 
+			#{district}, 
+			#{province}, 
+			#{street}, 
+			#{latitude}, 
+			#{longitude}, 
+			#{remark}, 
+			#{state}, 
+			NOW(),
+			#{createBy}, 
+			NOW(),
+			#{updateBy}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.monitor.entity.SpaceCamera">
+		update space_camera 
+		<set>
+			<if test="title != null">`title` = #{title}, </if>
+			<if test="spaceId != null">`space_id` = #{spaceId}, </if>
+			<if test="serialNo != null">`serial_no` = #{serialNo}, </if>
+			<if test="url != null">`url` = #{url}, </if>
+			<if test="img != null">`img` = #{img}, </if>
+			<if test="mapImg != null">`map_img` = #{mapImg}, </if>
+			<if test="address != null">`address` = #{address}, </if>
+			<if test="city != null">`city` = #{city}, </if>
+			<if test="district != null">`district` = #{district}, </if>
+			<if test="province != null">`province` = #{province}, </if>
+			<if test="street != null">`street` = #{street}, </if>
+			<if test="latitude != null">`latitude` = #{latitude}, </if>
+			<if test="longitude != null">`longitude` = #{longitude}, </if>
+			<if test="remark != null">`remark` = #{remark}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy},</if>
+			`update_at` = NOW()
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from space_camera where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from space_camera where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.setting.dao.IntegralDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.setting.entity.Integral" id="integralMap">
+        <result property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="userId" column="user_id"/>
+        <result property="integral" column="integral"/>
+        <result property="articleTypeCode" column="article_type_code"/>
+        <result property="articleId" column="article_id"/>
+        <result property="createAt" column="create_at"/>
+    </resultMap>
+
+    <select id="getUserRanking" resultType="int">
+		select rank from (select t.*, @curRank := @curRank + 1 AS rank
+			from (select sum(integral),
+				t.user_id
+				from integral t
+				group by user_id
+				order by sum(integral) desc) t, (select @curRank := 0) r) as integral
+		where user_id = #{userId}
+	</select>
+
+    <select id="get" resultType="xin.xiaoer.modules.setting.entity.Integral">
+		select * from integral where id = #{value}
+	</select>
+
+    <select id="getDetail" resultType="xin.xiaoer.modules.setting.entity.IntegralDetail">
+		select * from integral where id = #{value}
+	</select>
+
+    <select id="getByUserAndArticle" resultType="xin.xiaoer.modules.setting.entity.IntegralDetail">
+		select * from integral where 1 = 1
+		and article_type_code = #{articleTypeCode}
+		and user_id = #{userId}
+		and article_id = #{articleId}
+		limit 1
+	</select>
+
+    <select id="getTotalByUserAndArticle" resultType="java.lang.Double">
+        select sum(integral)
+        from integral
+        where 1 = 1
+        <if test="articleTypeCode != null and articleTypeCode != ''">and article_type_code = #{articleTypeCode}</if>
+        <if test="userId != null and userId != ''">and user_id = #{userId}</if>
+        <if test="articleId != null and articleId != ''">and article_id = #{articleId}</if>
+    </select>
+
+    <select id="getThisWeekTotal" resultType="java.lang.Double">
+        select sum(integral)
+        from integral
+        where week(create_at) = week(now())
+        and article_type_code = #{articleTypeCode}
+        and user_id = #{userId}
+        <if test="articleId != null and articleId != ''">and article_id = #{articleId}</if>
+    </select>
+
+    <select id="getTodayTotal" resultType="java.lang.Double">
+        select sum(integral)
+        from integral
+        where DATE_FORMAT(create_at, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d')
+        and article_type_code = #{articleTypeCode}
+        and user_id = #{userId}
+        <if test="articleId != null and articleId != ''">and article_id = #{articleId}</if>
+    </select>
+
+    <select id="getClickCardIntegral" resultType="xin.xiaoer.modules.setting.entity.Integral">
+		select *
+		from integral
+		where user_id = #{userId}
+		and article_type_code = 'AT0012'
+		and DATE_FORMAT(create_at, '%Y-%m-%d') = DATE_FORMAT(#{createAt}, '%Y-%m-%d')
+		limit 1
+	</select>
+
+    <select id="getUserIntegralTotal" resultType="java.lang.Double">
+		select sum(integral) from integral where user_id = #{value}
+	</select>
+
+    <select id="getIntegralListByUser" resultType="xin.xiaoer.modules.setting.entity.Integral">
+        select * from integral t
+        <include refid="where_clause"/>
+        and t.article_type_code not like 'AT0013'
+        and t.article_type_code not like 'AT0014'
+        and t.article_type_code not like 'AT0015'
+        and t.article_type_code not like 'AT0016'
+        and t.article_type_code not like 'AT0017'
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="getIntegralCountByUser" resultType="int">
+        select count(*) from integral t
+        <include refid="where_clause"/>
+        and t.article_type_code not like 'AT0013'
+        and t.article_type_code not like 'AT0014'
+        and t.article_type_code not like 'AT0015'
+        and t.article_type_code not like 'AT0016'
+        and t.article_type_code not like 'AT0017'
+    </select>
+
+    <select id="getList" resultType="xin.xiaoer.modules.setting.entity.Integral">
+        select * from integral t
+        <include refid="where_clause"/>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="getCount" resultType="int">
+        select count(*) from integral t
+        <include refid="where_clause"/>
+    </select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="id != null and id != ''">and t.id = #{id}</if>
+            <if test="idVague != null and idVague != ''">and t.id like concat('%',#{idVague},'%')</if>
+            <if test="userId != null and userId != ''">and t.user_id = #{userId}</if>
+            <if test="userIdVague != null and userIdVague != ''">and t.user_id like concat('%',#{userIdVague},'%')</if>
+            <if test="integral != null and integral != ''">and t.integral = #{integral}</if>
+            <if test="integralVague != null and integralVague != ''">and t.integral like
+                concat('%',#{integralVague},'%')
+            </if>
+            <if test="articleTypeCode != null and articleTypeCode != ''">and t.article_type_code = #{articleTypeCode}
+            </if>
+            <if test="articleTypeCodeVague != null and articleTypeCodeVague != ''">and t.article_type_code like
+                concat('%',#{articleTypeCodeVague},'%')
+            </if>
+            <if test="articleId != null and articleId != ''">and t.article_id = #{articleId}</if>
+            <if test="articleIdVague != null and articleIdVague != ''">and t.article_id like
+                concat('%',#{articleIdVague},'%')
+            </if>
+            <if test="createAt != null and createAt != ''">and t.create_at = #{createAt}</if>
+            <if test="createAtVague != null and createAtVague != ''">and t.create_at like
+                concat('%',#{createAtVague},'%')
+            </if>
+            <if test="searchFrom != null and searchFrom != ''">and DATE_FORMAT(t.create_at, '%Y-%m-%d') <![CDATA[>=]]>
+                DATE_FORMAT(#{searchFrom}, '%Y-%m-%d')
+            </if>
+            <if test="searchTo != null and searchTo != ''">and DATE_FORMAT(t.create_at, '%Y-%m-%d') <![CDATA[<=]]>
+                DATE_FORMAT(#{searchTo}, '%Y-%m-%d')
+            </if>
+        </where>
+    </sql>
+
+    <insert id="save" parameterType="xin.xiaoer.modules.setting.entity.Integral">
+		insert into integral
+		(
+			`title`,
+			`user_id`,
+			`integral`,
+			`article_type_code`, 
+			`article_id`, 
+			`create_at`
+		)
+		values
+		(
+			#{title},
+			#{userId},
+			#{integral},
+			#{articleTypeCode}, 
+			#{articleId}, 
+			NOW()
+		)
+	</insert>
+
+    <update id="update" parameterType="xin.xiaoer.modules.setting.entity.Integral">
+        update integral
+        <set>
+            <if test="title != null">`title` = #{title},</if>
+            <if test="userId != null">`user_id` = #{userId},</if>
+            <if test="integral != null">`integral` = #{integral},</if>
+            <if test="articleTypeCode != null">`article_type_code` = #{articleTypeCode},</if>
+            <if test="articleId != null">`article_id` = #{articleId},</if>
+            `create_at` = NOW()
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="delete">
+		delete from integral where id = #{value}
+	</delete>
+
+    <delete id="deleteBatch">
+        delete from integral where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="getThisMonthRanking" resultType="xin.xiaoer.modules.reporterranking.entity.ReporterRanking">
+        SELECT rank.*,
+        us.nickname AS user_name,
+        us.avatar AS avatar
+        FROM (select ranking.user_id,
+        sum(ranking.integral) AS integral
+        from integral ranking
+        where 1 =1
+        <if test="value != null and value != ''">and ranking.user_id = #{value}</if>
+        AND ranking.create_at <![CDATA[>=]]> DATE_FORMAT(NOW() ,'%Y-%m-01')
+        GROUP BY ranking.user_id) as rank, sys_user us
+        WHERE us.user_id = rank.user_id
+        ORDER BY rank.integral DESC
+        LIMIT 10
+    </select>
+
+    <select id="getThisWeekRanking" resultType="xin.xiaoer.modules.reporterranking.entity.ReporterRanking">
+        SELECT rank.*,
+        us.nickname AS user_name,
+        us.avatar AS avatar
+        FROM (select ranking.user_id,
+        sum(ranking.integral) AS integral
+        from integral ranking
+        where 1 =1
+        <if test="value != null and value != ''">and ranking.user_id = #{value}</if>
+        AND ranking.create_at <![CDATA[>=]]> DATE_FORMAT(SUBDATE(NOW(), WEEKDAY(NOW())), '%Y-%m-%d')
+        GROUP BY ranking.user_id) AS rank, sys_user us
+        WHERE us.user_id = rank.user_id
+        ORDER BY rank.integral DESC
+        LIMIT 10
+    </select>
+
+    <!--用户累计积分-->
+    <select id="getSumIntegral" resultType="String">
+        SELECT
+        SUM(i.integral)
+        FROM
+        integral i
+        WHERE
+        1=1
+        <if test="userId != null and userId != ''">
+            and i.user_id = #{userId}
+        </if>
+    </select>
+</mapper>

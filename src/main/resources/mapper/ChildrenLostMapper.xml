@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.monitor.dao.ChildrenLostDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.monitor.entity.ChildrenLost" id="childrenLostMap">
+        <result property="id" column="id"/>
+        <result property="spaceId" column="space_id"/>
+        <result property="childrenId" column="children_id"/>
+        <result property="subject" column="subject"/>
+        <result property="description" column="description"/>
+        <result property="lostTime" column="lost_time"/>
+        <result property="latitude" column="latitude"/>
+        <result property="longitude" column="longitude"/>
+        <result property="photo" column="photo"/>
+        <result property="state" column="state"/>
+		<result property="name" column="name"/>
+		<result property="birthday" column="birthday"/>
+		<result property="height" column="height"/>
+		<result property="userName" column="user_name"/>
+        <result property="createAt" column="create_at"/>
+        <result property="createBy" column="create_by"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.monitor.entity.ChildrenLost">
+		select cl.*,
+			uc.name,
+			uc.birthday,
+			uc.height,
+			su.nickname as user_name
+		from children_lost cl, user_children uc, sys_user su
+		where id = #{value}
+		and cl.children_id = uc.children_id
+		and uc.user_id = su.user_id
+	</select>
+
+	<select id="getNoticeList" resultType="xin.xiaoer.modules.mobile.entity.LostNotice">
+		select * from (select cl.id,
+			cl.lost_time,
+			cl.subject
+		from children_lost cl, user_children uc, sys_user su
+		where cl.children_id = uc.children_id
+		and uc.user_id = su.user_id
+		and cl.state = '1'
+		and uc.state = '1'
+		and su.status = '1'
+		<if test="spaceId != null and spaceId != ''"> and cl.space_id = #{spaceId} </if>) t
+		order by t.lost_time desc
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.monitor.entity.ChildrenLost">
+		select * from (select cl.*,
+				uc.name,
+				uc.birthday,
+				uc.height,
+				su.nickname as user_name
+			from (select t.*,
+			             sp.space_name
+			  from children_lost t
+			  left join space sp
+			  on sp.space_id = t.space_id) cl, user_children uc, sys_user su
+			where cl.children_id = uc.children_id
+			and uc.user_id = su.user_id) t
+		<include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from (select cl.*,
+				uc.name,
+				uc.birthday,
+				uc.height,
+				su.nickname as user_name
+			from children_lost cl, user_children uc, sys_user su
+			where cl.children_id = uc.children_id
+			and uc.user_id = su.user_id) t
+		<include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="id != null and id != ''"> and t.id = #{id} </if>
+            <if test="spaceId != null and spaceId != ''"> and t.space_id = #{spaceId} </if>
+    		<if test="idVague != null and idVague != ''"> and t.id like concat('%',#{idVague},'%') </if>
+            <if test="childrenId != null and childrenId != ''"> and t.children_id = #{childrenId} </if>
+    		<if test="childrenIdVague != null and childrenIdVague != ''"> and t.children_id like concat('%',#{childrenIdVague},'%') </if>
+            <if test="subject != null and subject != ''"> and t.subject = #{subject} </if>
+    		<if test="subjectVague != null and subjectVague != ''"> and t.subject like concat('%',#{subjectVague},'%') </if>
+            <if test="description != null and description != ''"> and t.description = #{description} </if>
+    		<if test="descriptionVague != null and descriptionVague != ''"> and t.description like concat('%',#{descriptionVague},'%') </if>
+            <if test="lostTime != null and lostTime != ''"> and t.lost_time = #{lostTime} </if>
+    		<if test="lostTimeVague != null and lostTimeVague != ''"> and t.lost_time like concat('%',#{lostTimeVague},'%') </if>
+            <if test="latitude != null and latitude != ''"> and t.latitude = #{latitude} </if>
+    		<if test="latitudeVague != null and latitudeVague != ''"> and t.latitude like concat('%',#{latitudeVague},'%') </if>
+            <if test="longitude != null and longitude != ''"> and t.longitude = #{longitude} </if>
+    		<if test="longitudeVague != null and longitudeVague != ''"> and t.longitude like concat('%',#{longitudeVague},'%') </if>
+            <if test="photo != null and photo != ''"> and t.photo = #{photo} </if>
+    		<if test="photoVague != null and photoVague != ''"> and t.photo like concat('%',#{photoVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+    		<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+            <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+    		<if test="createByVague != null and createByVague != ''"> and t.create_by like concat('%',#{createByVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.monitor.entity.ChildrenLost" useGeneratedKeys="true" keyProperty="id">
+		insert into children_lost
+		(
+			`space_id`,
+			`children_id`,
+			`subject`,
+			`description`, 
+			`lost_time`, 
+			`latitude`, 
+			`longitude`, 
+			`photo`, 
+			`state`, 
+			`create_at`, 
+			`create_by`
+		)
+		values
+		(
+			#{spaceId},
+			#{childrenId},
+			#{subject},
+			#{description}, 
+			#{lostTime}, 
+			#{latitude}, 
+			#{longitude}, 
+			#{photo}, 
+			#{state}, 
+			NOW(),
+			#{createBy}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.monitor.entity.ChildrenLost">
+		update children_lost 
+		<set>
+			<if test="spaceId != null">`space_id` = #{spaceId}, </if>
+			<if test="childrenId != null">`children_id` = #{childrenId}, </if>
+			<if test="subject != null">`subject` = #{subject}, </if>
+			<if test="description != null">`description` = #{description}, </if>
+			<if test="lostTime != null">`lost_time` = #{lostTime}, </if>
+			<if test="latitude != null">`latitude` = #{latitude}, </if>
+			<if test="longitude != null">`longitude` = #{longitude}, </if>
+			<if test="photo != null">`photo` = #{photo}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="createBy != null">`create_by` = #{createBy},</if>
+			`create_at` = NOW()
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from children_lost where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from children_lost where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

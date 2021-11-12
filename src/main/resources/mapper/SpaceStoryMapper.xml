@@ -1,0 +1,572 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.story.dao.SpaceStoryDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.story.entity.SpaceStory" id="spaceStoryMap">
+        <result property="storyId" column="story_id"/>
+        <result property="spaceId" column="space_id"/>
+        <result property="title" column="title"/>
+        <result property="featuredYn" column="featured_yn"/>
+        <result property="readCount" column="read_count"/>
+        <result property="state" column="state"/>
+        <result property="createUser" column="create_user"/>
+        <result property="avatar" column="avatar"/>
+        <result property="likeYN" column="like_yn"/>
+        <result property="totalLikes" column="total_likes"/>
+        <result property="totalReviews" column="total_reviews"/>
+        <result property="createAt" column="create_at"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateAt" column="update_at"/>
+        <result property="updateBy" column="update_by"/>
+    </resultMap>
+
+    <select id="get" resultType="xin.xiaoer.modules.story.entity.SpaceStory">
+		select * from space_story where story_id = #{value}
+	</select>
+
+    <select id="getreviewList" resultType="Map">
+        SELECT
+        ss.title,
+        ss.create_at,
+        su.nickname,
+        su.avatar,
+        ssi.item_image,
+        r.*, IFNULL(l.like_count, 0) AS like_count
+        FROM
+        space_story ss
+        LEFT JOIN review re ON re.article_id = ss.story_id
+        LEFT JOIN (
+        SELECT
+        l.article_id,
+        COUNT(*) AS like_count
+        FROM
+        `like` l
+        WHERE
+        l.article_type_code = 'AT0005'
+        GROUP BY
+        l.article_id
+        ) l ON l.article_id = ss.story_id
+        LEFT JOIN (
+        SELECT
+        r.article_id,
+        r.create_at AS review_at,
+        COUNT(*) AS review_count
+        FROM
+        review r
+        WHERE
+        r.article_type_code = 'AT0005'
+        GROUP BY
+        r.article_id
+        ) r ON r.article_id = ss.story_id
+        LEFT JOIN sys_user su ON ss.create_by = su.user_id
+        LEFT JOIN space_story_item ssi ON ss.story_id = ssi.story_id
+        WHERE
+        re.article_type_code = 'AT0005'
+        AND re.user_id = #{userId}
+        GROUP BY
+        ss.story_id
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <when test="sort == 'desc'">
+                order by review_at desc
+            </when>
+            <when test="sort == 'asc'">
+                order by review_at asc
+            </when>
+        </choose>
+        <if test="offset !=null and limit !=null">
+            limit #{offset},#{limit}
+        </if>
+	</select>
+
+    <select id="getreviewcount" resultType="int">
+        SELECT COUNT(aa.story_id)
+        FROM
+        (SELECT ss.*,COUNT(re.user_id) AS countreview
+        FROM space_story ss
+        LEFT JOIN review re
+        ON ss.story_id = re.article_id
+        WHERE re.user_id = #{userId}
+        AND re.article_type_code = 'AT0005'
+        GROUP BY ss.story_id
+        ORDER BY ss.create_at DESC) aa
+    </select>
+
+    <select id="getlikeList" resultType="Map">
+        SELECT
+        ssi.item_image,su.nickname,su.avatar,
+        ss.*,l.*,IFNULL(r.review_count,0)  AS review_count
+        FROM
+        space_story ss
+        LEFT JOIN `like` lk ON lk.article_id = ss.story_id
+        LEFT JOIN (
+        SELECT
+        l.article_id,l.create_at AS like_at,
+        COUNT(*) AS like_count
+        FROM
+        `like` l
+        WHERE l.article_type_code = 'AT0005'
+        GROUP BY
+        l.article_id
+        ) l ON l.article_id = ss.story_id
+        LEFT JOIN (
+        SELECT
+        r.article_id,r.article_type_code,
+        COUNT(*) AS review_count
+        FROM
+        review r
+        WHERE r.article_type_code = 'AT0005'
+        GROUP BY
+        r.article_id
+        ) r ON r.article_id = ss.story_id
+        LEFT JOIN space_story_item  ssi ON
+        ss.story_id = ssi.story_id
+        LEFT JOIN sys_user su
+        ON ss.create_by = su.user_id
+        WHERE
+        lk.article_type_code = 'AT0005'
+        AND lk.user_id = #{userId}
+        GROUP BY ss.story_id
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <when test="sort == 'desc'">
+                order by like_at desc
+            </when>
+            <when test="sort == 'asc'">
+                order by like_at asc
+            </when>
+        </choose>
+        <if test="offset !=null and limit !=null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+
+    <select id="getlikeCount" resultType="int">
+        SELECT COUNT(aa.story_id)
+        FROM
+        (SELECT ss.*,COUNT(`like`.user_id) AS countreview
+        FROM space_story ss
+        LEFT JOIN `like`
+        ON ss.story_id = `like`.article_id
+        WHERE `like`.user_id = #{userId}
+        AND `like`.article_type_code = 'AT0005'
+        GROUP BY ss.story_id) aa
+    </select>
+
+
+    <select id="getDetail" resultType="xin.xiaoer.modules.story.entity.SpaceStory">
+        select t.*,
+        us.avatar,
+        us.nickname AS create_user
+        FROM (SELECT story.*,
+        review.total_reviews,
+        totalLike.total_likes,
+        IF(`like`.user_id, TRUE , FALSE ) AS like_yn
+        FROM space_story story
+        LEFT JOIN (SELECT article_id,
+        COUNT(review.article_id) AS total_reviews
+        FROM (SELECT article_id
+        FROM review
+        WHERE article_type_code = 'AT0005') AS review
+        GROUP BY article_id) AS review
+        ON story.story_id = review.article_id
+        LEFT JOIN (SELECT article_id,
+        COUNT(`like`.article_id) AS total_likes
+        FROM (SELECT article_id
+        FROM `like`
+        WHERE article_type_code = 'AT0005'
+        GROUP BY user_id, article_id) AS `like`
+        GROUP BY article_id) AS totalLike
+        ON story.story_id = totalLike.article_id
+        LEFT JOIN (SELECT *
+        FROM `like`
+        WHERE 1 =1
+        AND article_type_code = 'AT0005'
+        <if test="userId != null and userId != ''"> and user_id = #{userId} </if>
+        GROUP BY user_id, article_id) AS `like`
+        ON `like`.article_id = story.story_id
+        GROUP BY story.story_id) t, sys_user us
+        WHERE t.story_id = #{storyId}
+        AND t.create_by = us.user_id
+    </select>
+
+    <select id="getList" resultType="xin.xiaoer.modules.story.entity.SpaceStory">
+        select t.*,
+        us.avatar,
+        us.nickname AS create_user
+        FROM (SELECT story.*,
+        review.total_reviews,
+        totalLike.total_likes,
+        IF(`like`.user_id, TRUE , FALSE ) AS like_yn,
+        sp.space_name
+        FROM space_story story
+        LEFT JOIN (SELECT article_id,
+        COUNT(review.article_id) AS total_reviews
+        FROM (SELECT article_id
+        FROM review
+        WHERE article_type_code = 'AT0005') AS review
+        GROUP BY article_id) AS review
+        ON story.story_id = review.article_id
+        LEFT JOIN (SELECT article_id,
+        COUNT(`like`.article_id) AS total_likes
+        FROM (SELECT article_id
+        FROM `like`
+        WHERE article_type_code = 'AT0005'
+        GROUP BY user_id, article_id) AS `like`
+        GROUP BY article_id) AS totalLike
+        ON story.story_id = totalLike.article_id
+        LEFT JOIN (SELECT *
+        FROM `like`
+        WHERE 1 =1
+        AND article_type_code = 'AT0005'
+        <if test="userId != null and userId != ''"> and user_id = #{userId} </if>
+        GROUP BY user_id, article_id) AS `like`
+        ON `like`.article_id = story.story_id
+        LEFT JOIN space sp
+        ON sp.space_id = story.space_id
+        GROUP BY story.story_id) t, sys_user us
+        <include refid="where_clause" />
+        AND t.create_by = us.user_id
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by t.${sidx} ${order}
+            </when>
+            <otherwise>
+                order by t.story_id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="getCount" resultType="int">
+        select count(*) from space_story t, sys_user us
+        <include refid="where_clause" />
+        AND t.create_by = us.user_id
+    </select>
+
+
+    <select id="getAPIList" resultType="xin.xiaoer.modules.story.entity.SpaceStory">
+        select * from
+        (select t.*,
+        us.avatar,
+        IF(us.nickname is null or us.nickname = '', us.phone_no, us.nickname) AS create_user
+        FROM (SELECT story.*,
+        review.total_reviews,
+        totalLike.total_likes,
+        IF(`like`.user_id, TRUE , FALSE ) AS like_yn
+        FROM space_story story
+        LEFT JOIN (SELECT article_id,
+        COUNT(review.article_id) AS total_reviews
+        FROM (SELECT article_id
+        FROM review
+        WHERE article_type_code = 'AT0005') AS review
+        GROUP BY article_id) AS review
+        ON story.story_id = review.article_id
+        LEFT JOIN (SELECT article_id,
+        COUNT(`like`.article_id) AS total_likes
+        FROM (SELECT article_id
+        FROM `like`
+        WHERE article_type_code = 'AT0005'
+        GROUP BY user_id, article_id) AS `like`
+        GROUP BY article_id) AS totalLike
+        ON story.story_id = totalLike.article_id
+        LEFT JOIN (SELECT *
+        FROM `like`
+        WHERE 1 =1
+        AND article_type_code = 'AT0005'
+        <if test="userId != null and userId != ''"> and user_id = #{userId} </if>
+        GROUP BY user_id, article_id) AS `like`
+        ON `like`.article_id = story.story_id
+        GROUP BY story.story_id) t, sys_user us
+        <include refid="where_clause" />
+        AND t.create_by = us.user_id) a
+        LEFT JOIN
+        (SELECT sp.space_id
+        FROM space sp
+        WHERE sp.state = '1'
+        <if test="city != null and city != ''"> and sp.city = #{city} </if>) sid
+        ON a.space_id = sid.space_id
+        WHERE a.space_id = sid.space_id
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by t.${sidx} ${order}
+            </when>
+            <otherwise>
+                order by a.create_at desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="getmyStoryList" resultType="Map">
+        SELECT ss.*,
+        ssi.item_image,
+        su.nickname,
+        su.avatar,
+        IFNULL(l.like_count,0) AS like_count,
+        IFNULL(r.review_count,0) AS review_count
+        FROM space_story ss
+        LEFT JOIN review re
+        ON ss.story_id = re.article_id
+        LEFT JOIN(
+        SELECT
+        l.article_id,
+        IFNULL(COUNT(*),0) AS like_count
+        FROM
+        `like` l
+        WHERE l.article_type_code = 'AT0005'
+        GROUP BY
+        l.article_id
+        ) l ON l.article_id = ss.story_id
+        LEFT JOIN (
+        SELECT
+        r.article_id,
+        IFNULL(COUNT(*),0) AS review_count
+        FROM
+        review r
+        WHERE r.article_type_code = 'AT0005'
+        GROUP BY
+        r.article_id
+        ) r ON r.article_id = ss.story_id
+        LEFT JOIN space_story_item ssi
+        ON ss.story_id = ssi.story_id
+        LEFT JOIN sys_user su
+        ON ss.create_by = su.user_id
+				WHERE ss.create_by = #{userId}
+        GROUP BY ss.story_id
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <when test="sort == 'desc'">
+                order by create_at desc
+            </when>
+            <when test="sort == 'asc'">
+                order by create_at asc
+            </when>
+        </choose>
+        <if test="offset !=null and limit !=null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+
+    <select id="getmyStoryCount" resultType="int">
+            SELECT
+                COUNT(*)
+            FROM
+                space_story ss
+            WHERE
+                ss.create_by = #{userId}
+    </select>
+
+    <select id="getstoryList" resultType="Map">
+        SELECT ss.*,
+        ssi.item_image,
+        ssi.type,
+        su.nickname,
+        su.avatar,
+        IFNULL(l.like_count,0) AS like_count,
+        IFNULL(r.review_count,0) AS review_count
+        FROM space_story ss
+        LEFT JOIN review re
+        ON ss.story_id = re.article_id
+        LEFT JOIN(
+        SELECT
+        l.article_id,
+        IFNULL(COUNT(*),0) AS like_count
+        FROM
+        `like` l
+        WHERE l.article_type_code = 'AT0005'
+        GROUP BY
+        l.article_id
+        ) l ON l.article_id = ss.story_id
+        LEFT JOIN (
+        SELECT
+        r.article_id,
+        IFNULL(COUNT(*),0) AS review_count
+        FROM
+        review r
+        WHERE r.article_type_code = 'AT0005'
+        GROUP BY
+        r.article_id
+        ) r ON r.article_id = ss.story_id
+        LEFT JOIN space_story_item ssi
+        ON ss.story_id = ssi.story_id
+        LEFT JOIN sys_user su
+        ON ss.create_by = su.user_id
+        GROUP BY ss.story_id
+        ORDER BY ss.create_at DESC
+        <if test="offset !=null and limit !=null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+
+    <select id="getstoryCount" resultType="int">
+		SELECT COUNT(ss.story_id)
+        FROM space_story ss
+        LEFT JOIN review re
+        ON ss.story_id = re.article_id
+	</select>
+
+    <select id="getAPICount" resultType="int">
+        select count(*) from (SELECT story.*,
+        review.total_reviews,
+        totalLike.total_likes,
+        IF(`like`.user_id, TRUE , FALSE ) AS like_yn
+        FROM space_story story
+        LEFT JOIN (SELECT article_id,
+        COUNT(review.article_id) AS total_reviews
+        FROM (SELECT article_id
+        FROM review
+        WHERE article_type_code = 'AT0005') AS review
+        GROUP BY article_id) AS review
+        ON story.story_id = review.article_id
+        LEFT JOIN (SELECT article_id,
+        COUNT(`like`.article_id) AS total_likes
+        FROM (SELECT article_id
+        FROM `like`
+        WHERE article_type_code = 'AT0005'
+        GROUP BY user_id, article_id) AS `like`
+        GROUP BY article_id) AS totalLike
+        ON story.story_id = totalLike.article_id
+        LEFT JOIN (SELECT *
+        FROM `like`
+        WHERE 1 =1
+        AND article_type_code = 'AT0005'
+        <if test="userId != null and userId != ''"> and user_id = #{userId} </if>
+        GROUP BY user_id, article_id) AS `like`
+        ON `like`.article_id = story.story_id
+        GROUP BY story.story_id) t, sys_user us
+        <include refid="where_clause" />
+        AND t.create_by = us.user_id
+    </select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="storyId != null and storyId != ''"> and t.story_id = #{storyId} </if>
+            <if test="storyIdVague != null and storyIdVague != ''"> and t.story_id like concat('%',#{storyIdVague},'%') </if>
+            <if test="spaceId != null and spaceId != ''"> and t.space_id = #{spaceId} </if>
+            <if test="spaceIdVague != null and spaceIdVague != ''"> and t.space_id like concat('%',#{spaceIdVague},'%') </if>
+            <if test="title != null and title != ''"> and t.title = #{title} </if>
+            <if test="titleVague != null and titleVague != ''"> and t.title like concat('%',#{titleVague},'%') </if>
+            <if test="featuredYn != null and featuredYn != ''"> and t.featured_yn = #{featuredYn} </if>
+            <if test="featuredYnVague != null and featuredYnVague != ''"> and t.featured_yn like concat('%',#{featuredYnVague},'%') </if>
+            <if test="readCount != null and readCount != ''"> and t.read_count = #{readCount} </if>
+            <if test="readCountVague != null and readCountVague != ''"> and t.read_count like concat('%',#{readCountVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+            <if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+            <if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+            <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+            <if test="createByVague != null and createByVague != ''"> and t.create_by like concat('%',#{createByVague},'%') </if>
+            <if test="updateAt != null and updateAt != ''"> and t.update_at = #{updateAt} </if>
+            <if test="updateAtVague != null and updateAtVague != ''"> and t.update_at like concat('%',#{updateAtVague},'%') </if>
+            <if test="updateBy != null and updateBy != ''"> and t.update_by = #{updateBy} </if>
+            <if test="updateByVague != null and updateByVague != ''"> and t.update_by like concat('%',#{updateByVague},'%') </if>
+
+            <!--黄小东-->
+            <if test=" left!=null and right !=null">
+                AND t.create_at >= #{left}
+            </if>
+        </where>
+    </sql>
+
+    <insert id="save" parameterType="xin.xiaoer.modules.story.entity.SpaceStory" useGeneratedKeys="true" keyProperty="storyId">
+		insert into space_story
+		(
+			`space_id`, 
+			`title`, 
+			`featured_yn`, 
+			`read_count`, 
+			`state`, 
+			`create_at`, 
+			`create_by`, 
+			`update_at`, 
+			`update_by`
+		)
+		values
+		(
+			#{spaceId},
+			#{title}, 
+			#{featuredYn}, 
+			#{readCount}, 
+			#{state}, 
+			NOW(),
+			#{createBy}, 
+			NOW(),
+			#{updateBy}
+		)
+	</insert>
+
+    <update id="update" parameterType="xin.xiaoer.modules.story.entity.SpaceStory">
+        update space_story
+        <set>
+            <if test="spaceId != null">`space_id` = #{spaceId}, </if>
+            <if test="title != null">`title` = #{title}, </if>
+            <if test="featuredYn != null">`featured_yn` = #{featuredYn}, </if>
+            <if test="readCount != null and readCount != 0">`read_count` = #{readCount}, </if>
+            <if test="state != null">`state` = #{state}, </if>
+            <if test="updateBy != null">`update_by` = #{updateBy},</if>
+            <!--黄小东-->
+            <if test="rank != null">rank = #{rank},</if>
+            `update_at` = NOW()
+        </set>
+        where story_id = #{storyId}
+    </update>
+
+    <delete id="delete">
+		delete from space_story where story_id = #{value}
+	</delete>
+
+    <delete id="deleteBatch">
+        delete from space_story where story_id in
+        <foreach item="storyId" collection="array" open="(" separator="," close=")">
+            #{storyId}
+        </foreach>
+    </delete>
+
+    <!--热门空间故事-->
+    <select id="getHotStory" resultType="xin.xiaoer.modules.story.entity.SpaceStory">
+        SELECT
+        s.story_id,
+        s.space_id,
+        s.title,
+        s.create_at,
+        s.rank
+        FROM
+        space_story s
+        WHERE
+        1 = 1
+        <choose>
+            <when test="date != null">
+
+                <if test="date != null">
+                    AND s.create_at >= #{date}
+                </if>
+            </when>
+            <when test="right != null and left != null">
+                and
+                s.create_at BETWEEN #{left} and #{right}
+            </when>
+        </choose>
+        <if test="spaceId != null">
+            AND s.space_id = #{spaceId}
+        </if>
+        ORDER BY
+        s.rank,s.create_at DESC
+        limit 10
+    </select>
+
+</mapper>

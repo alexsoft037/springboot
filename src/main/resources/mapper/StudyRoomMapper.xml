@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.classroom.dao.StudyRoomDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.classroom.entity.StudyRoom" id="studyRoomMap">
+        <result property="roomId" column="room_id"/>
+        <result property="spaceId" column="space_id"/>
+        <result property="srTypeCode" column="sr_type_code"/>
+        <result property="srTypeName" column="sr_type_name"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="featuredImage" column="featured_image"/>
+        <result property="startTime" column="start_time"/>
+        <result property="srStatusCode" column="sr_status_code"/>
+        <result property="srStatusName" column="sr_status_name"/>
+        <result property="numberOfPeople" column="number_of_people"/>
+        <result property="integral" column="integral"/>
+        <result property="readCount" column="read_count"/>
+        <result property="location" column="location"/>
+        <result property="latitude" column="latitude"/>
+        <result property="longitude" column="longitude"/>
+        <result property="weight" column="weight"/>
+        <result property="featuredYn" column="featured_yn"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateAt" column="update_at"/>
+        <result property="updateBy" column="update_by"/>
+    </resultMap>
+
+    <resultMap type="xin.xiaoer.modules.mobile.entity.StudyRoomListItem" id="studyRoomListItemMap">
+        <result property="roomId" column="room_id"/>
+        <result property="spaceId" column="space_id"/>
+        <result property="srTypeCode" column="sr_type_code"/>
+        <result property="title" column="title"/>
+        <result property="featuredImage" column="featured_image"/>
+        <result property="srStatusCode" column="sr_status_code"/>
+        <result property="srStatusName" column="sr_status_name"/>
+        <result property="numberOfPeople" column="number_of_people"/>
+        <result property="createAt" column="create_at"/>
+    </resultMap>
+
+    <select id="get" resultType="xin.xiaoer.modules.classroom.entity.StudyRoom">
+		select t.* from (select sr.*, srType.para_name as sr_type_name
+			from study_room as sr, sys_commpara as srType
+			WHERE sr.sr_type_code = srType.para_key) t where t.room_id = #{value}
+	</select>
+
+    <sql id="field">
+		sr.room_id,
+		sr.space_id,
+		sr.sr_type_code,
+		sr.title,
+		sr.content,
+		sr.start_time,
+		sr.sr_status_code,
+		sr.number_of_people,
+		sr.integral,
+		sr.read_count,
+		sr.location,
+		sr.latitude,
+		sr.longitude,
+		sr.weight,
+		sr.featured_yn,
+		sr.state,
+		sr.create_at,
+		sr.create_by,
+		sr.update_at,
+		sr.update_by
+	</sql>
+
+    <select id="getListItemOjbect" resultType="xin.xiaoer.modules.mobile.entity.StudyRoomListItem">
+        select * from (select <include refid="field" />,
+        file.url as featured_image,
+        srStatus.para_name AS sr_status_name
+        from study_room sr
+        left join sys_commpara srStatus
+        on sr.sr_status_code = srStatus.para_key
+        left join sys_file file
+        on file.upload_id = sr.featured_image) t
+        where t.room_id = #{roomId}
+    </select>
+
+    <select id="getList" resultType="xin.xiaoer.modules.classroom.entity.StudyRoom">
+        select t.*,
+        sp.space_name
+        from (select sr.*, srType.para_name as sr_type_name, srStatus.para_name AS sr_status_name
+        from study_room as sr, sys_commpara as srType, sys_commpara srStatus
+        WHERE sr.sr_type_code = srType.para_key AND sr.sr_status_code = srStatus.para_key) t
+        left join space sp
+        on sp.space_id = t.space_id
+        <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by room_id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="getCount" resultType="int">
+        select count(*) from (select sr.*, srType.para_name as sr_type_name, srStatus.para_name AS sr_status_name
+        from study_room as sr, sys_commpara as srType, sys_commpara srStatus
+        WHERE sr.sr_type_code = srType.para_key AND sr.sr_status_code = srStatus.para_key) t
+        <include refid="where_clause" />
+    </select>
+
+    <select id="getstudyList" resultType="Map">
+        SELECT sr.*,
+        IFNULL(su.avatar,NULL) AS avatar,
+        IFNULL(su.nickname,'noname') AS nickname
+        FROM study_room sr
+        LEFT JOIN study_attend sa
+        ON sr.room_id = sa.room_id
+        LEFT JOIN sys_user su
+        ON sr.create_by = su.user_id
+        WHERE sa.user_id = #{userId}
+        <if test="offset !=null and limit !=null">
+            limit #{offset},#{limit}
+        </if>
+	</select>
+
+    <select id="getstudyCount" resultType="int">
+		SELECT COUNT(t.id)
+		FROM
+		(SELECT * FROM
+		study_attend sa
+		WHERE sa.user_id =#{userId}) t
+	</select>
+
+    <select id="getListData" resultType="xin.xiaoer.modules.mobile.entity.StudyRoomListItem">
+        select * from (select <include refid="field" />,
+        file.url as featured_image,
+        srStatus.para_name AS sr_status_name
+        from study_room sr
+        left join sys_commpara srStatus
+        on sr.sr_status_code = srStatus.para_key
+        left join sys_file file
+        on file.upload_id = sr.featured_image) t
+        <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by room_id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="getCountData" resultType="int">
+        select count(*) from (select <include refid="field" />,
+        file.url as featured_image,
+        srStatus.para_name AS sr_status_name
+        from study_room sr
+        left join sys_commpara srStatus
+        on sr.sr_status_code = srStatus.para_key
+        left join sys_file file
+        on file.upload_id = sr.featured_image) t
+        <include refid="where_clause" />
+    </select>
+
+    <select id="getListDataByUser" resultType="xin.xiaoer.modules.mobile.entity.StudyRoomListItem">
+        select * from (select sr.number_of_people,
+        sr.room_id,
+        sr.space_id,
+        sr.sr_status_code,
+        sr.sr_type_code,
+        sr.title,
+        sr.state,
+        sr.user_update as create_at,
+        file.url as featured_image,
+        srStatus.para_name AS sr_status_name
+        from (select sr.*,sa.create_at as user_update
+        from study_room sr, study_attend sa
+        where sr.room_id = sa.room_id
+        and sa.user_id = #{userId}) sr
+        left join sys_commpara srStatus
+        on sr.sr_status_code = srStatus.para_key
+        left join sys_file file
+        on file.upload_id = sr.featured_image) t
+        <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <when test="sort == 'desc'">
+                order by create_at desc
+            </when>
+            <when test="sort == 'asc'">
+                order by create_at asc
+            </when>
+            <otherwise>
+                order by room_id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="getCountDataByUser" resultType="int">
+        select count(*) from (select <include refid="field" />,
+        file.url as featured_image,
+        srStatus.para_name AS sr_status_name
+        from (select sr.*
+        from study_room sr, study_attend sa
+        where sr.room_id = sa.room_id
+        and sa.user_id = #{userId}) sr
+        left join sys_commpara srStatus
+        on sr.sr_status_code = srStatus.para_key
+        left join sys_file file
+        on file.upload_id = sr.featured_image) t
+        <include refid="where_clause" />
+    </select>
+
+    <select id="getFeaturedList" resultType="xin.xiaoer.modules.mobile.entity.StudyRoomListItem">
+        select t.*
+        from study_room t
+        <include refid="where_clause" />
+        ORDER BY t.read_count DESC
+        <if test="limit != null and limit != ''">
+            limit ${limit}
+        </if>
+    </select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="roomId != null and roomId != ''"> and t.room_id = #{roomId} </if>
+            <if test="roomIdVague != null and roomIdVague != ''"> and t.room_id like concat('%',#{roomIdVague},'%') </if>
+            <if test="spaceId != null and spaceId != ''"> and t.space_id = #{spaceId} </if>
+            <if test="spaceIdVague != null and spaceIdVague != ''"> and t.space_id like concat('%',#{spaceIdVague},'%') </if>
+            <if test="srTypeCode != null and srTypeCode != ''"> and t.sr_type_code = #{srTypeCode} </if>
+            <if test="srTypeCodeVague != null and srTypeCodeVague != ''"> and t.sr_type_code like concat('%',#{srTypeCodeVague},'%') </if>
+            <if test="title != null and title != ''"> and t.title = #{title} </if>
+            <if test="titleVague != null and titleVague != ''"> and t.title like concat('%',#{titleVague},'%') </if>
+            <if test="content != null and content != ''"> and t.content = #{content} </if>
+            <if test="contentVague != null and contentVague != ''"> and t.content like concat('%',#{contentVague},'%') </if>
+            <if test="featuredImage != null and featuredImage != ''"> and t.featured_image = #{featuredImage} </if>
+            <if test="featuredImageVague != null and featuredImageVague != ''"> and t.featured_image like concat('%',#{featuredImageVague},'%') </if>
+            <if test="startTime != null and startTime != ''"> and t.start_time = #{startTime} </if>
+            <if test="startTimeVague != null and startTimeVague != ''"> and t.start_time like concat('%',#{startTimeVague},'%') </if>
+            <if test="srStatusCode != null and srStatusCode != ''"> and t.sr_status_code = #{srStatusCode} </if>
+            <if test="srStatusCodeVague != null and srStatusCodeVague != ''"> and t.sr_status_code like concat('%',#{srStatusCodeVague},'%') </if>
+            <if test="numberOfPeople != null and numberOfPeople != ''"> and t.number_of_people = #{numberOfPeople} </if>
+            <if test="numberOfPeopleVague != null and numberOfPeopleVague != ''"> and t.number_of_people like concat('%',#{numberOfPeopleVague},'%') </if>
+            <if test="readCount != null and readCount != ''"> and t.read_count = #{readCount} </if>
+            <if test="readCountVague != null and readCountVague != ''"> and t.read_count like concat('%',#{readCountVague},'%') </if>
+            <if test="location != null and location != ''"> and t.location = #{location} </if>
+            <if test="locationVague != null and locationVague != ''"> and t.location like concat('%',#{locationVague},'%') </if>
+            <if test="latitude != null and latitude != ''"> and t.latitude = #{latitude} </if>
+            <if test="latitudeVague != null and latitudeVague != ''"> and t.latitude like concat('%',#{latitudeVague},'%') </if>
+            <if test="longitude != null and longitude != ''"> and t.longitude = #{longitude} </if>
+            <if test="longitudeVague != null and longitudeVague != ''"> and t.longitude like concat('%',#{longitudeVague},'%') </if>
+            <if test="weight != null and weight != ''"> and t.weight = #{weight} </if>
+            <if test="weightVague != null and weightVague != ''"> and t.weight like concat('%',#{weightVague},'%') </if>
+            <if test="featuredYn != null and featuredYn != ''"> and t.featured_yn = #{featuredYn} </if>
+            <if test="featuredYnVague != null and featuredYnVague != ''"> and t.featured_yn like concat('%',#{featuredYnVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+            <if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+            <if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+            <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+            <if test="createByVague != null and createByVague != ''"> and t.create_by like concat('%',#{createByVague},'%') </if>
+            <if test="updateAt != null and updateAt != ''"> and t.update_at = #{updateAt} </if>
+            <if test="updateAtVague != null and updateAtVague != ''"> and t.update_at like concat('%',#{updateAtVague},'%') </if>
+            <if test="updateBy != null and updateBy != ''"> and t.update_by = #{updateBy} </if>
+            <if test="updateByVague != null and updateByVague != ''"> and t.update_by like concat('%',#{updateByVague},'%') </if>
+
+            /*新加*/
+            <if test="period !=null and period != '' ">and date_sub(CURDATE(), INTERVAL #{period} DAY) &lt;= DATE(t.create_at)</if>
+        </where>
+    </sql>
+
+    <insert id="save" parameterType="xin.xiaoer.modules.classroom.entity.StudyRoom" useGeneratedKeys="true" keyProperty="roomId">
+		insert into study_room
+		(
+			`space_id`, 
+			`sr_type_code`, 
+			`title`, 
+			`content`, 
+			`featured_image`, 
+			`start_time`, 
+			`sr_status_code`, 
+			`number_of_people`, 
+			`integral`,
+			`read_count`,
+			`location`, 
+			`latitude`, 
+			`longitude`, 
+			`weight`, 
+			`featured_yn`, 
+			`state`, 
+			`create_at`, 
+			`create_by`, 
+			`update_at`, 
+			`update_by`
+		)
+		values
+		(
+			#{spaceId}, 
+			#{srTypeCode}, 
+			#{title}, 
+			#{content}, 
+			#{featuredImage}, 
+			#{startTime}, 
+			#{srStatusCode}, 
+			#{numberOfPeople},
+			#{integral},
+			#{readCount}, 
+			#{location}, 
+			#{latitude}, 
+			#{longitude}, 
+			#{weight}, 
+			#{featuredYn}, 
+			#{state}, 
+			NOW(),
+			#{createBy}, 
+			NOW(),
+			#{updateBy}
+		)
+	</insert>
+
+    <update id="update" parameterType="xin.xiaoer.modules.classroom.entity.StudyRoom">
+        update study_room
+        <set>
+            <if test="spaceId != null">`space_id` = #{spaceId}, </if>
+            <if test="srTypeCode != null">`sr_type_code` = #{srTypeCode}, </if>
+            <if test="title != null">`title` = #{title}, </if>
+            <if test="content != null">`content` = #{content}, </if>
+            <if test="featuredImage != null">`featured_image` = #{featuredImage}, </if>
+            <if test="startTime != null">`start_time` = #{startTime}, </if>
+            <if test="srStatusCode != null">`sr_status_code` = #{srStatusCode}, </if>
+            <if test="numberOfPeople != null">`number_of_people` = #{numberOfPeople}, </if>
+            <if test="readCount != null">`read_count` = #{readCount}, </if>
+            <if test="integral != null">`integral` = #{integral}, </if>
+            <if test="location != null">`location` = #{location}, </if>
+            <if test="latitude != null">`latitude` = #{latitude}, </if>
+            <if test="longitude != null">`longitude` = #{longitude}, </if>
+            <if test="weight != null">`weight` = #{weight}, </if>
+            <if test="featuredYn != null">`featured_yn` = #{featuredYn}, </if>
+            <if test="state != null">`state` = #{state}, </if>
+            <if test="updateBy != null">`update_by` = #{updateBy},</if>
+            `update_at` = #{updateAt}
+        </set>
+        where room_id = #{roomId}
+    </update>
+
+    <delete id="delete">
+		delete from study_room where room_id = #{value}
+	</delete>
+
+    <delete id="deleteBatch">
+        delete from study_room where room_id in
+        <foreach item="roomId" collection="array" open="(" separator="," close=")">
+            #{roomId}
+        </foreach>
+    </delete>
+
+</mapper>

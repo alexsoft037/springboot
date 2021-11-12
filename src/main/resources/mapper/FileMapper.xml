@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.dao.FileDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.entity.File" id="fileMap">
+        <result property="id" column="id"/>
+        <result property="spaceId" column="space_id"/>
+        <result property="uploadId" column="upload_id"/>
+        <result property="url" column="url"/>
+		<result property="thumbnailUrl" column="thumbnail_url"/>
+        <result property="fileName" column="file_name"/>
+        <result property="fileType" column="file_type"/>
+        <result property="fileSize" column="file_size"/>
+		<result property="ossYn" column="oss_yn"/>
+		<result property="createTime" column="create_time"/>
+		<result property="createBy" column="create_by"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.entity.File">
+		select * from sys_file where id = #{value}
+	</select>
+	<select id="getFileList" resultType="xin.xiaoer.entity.File">
+		select * from sys_file where upload_id IN (#{value})
+	</select>
+
+	<select id="getFileListByUUID"  resultType="xin.xiaoer.entity.File">
+		select * from sys_file where upload_id IN
+		<foreach item="item" index="index" collection="list"
+				 open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</select>
+
+	<select id="getByRelationId" parameterType="String" resultType="xin.xiaoer.entity.File">
+		select * from sys_file where upload_id = #{value}
+	</select>
+
+	<select id="queryObjectByRelationId" parameterType="String" resultType="xin.xiaoer.entity.File">
+		select * from sys_file where upload_id = #{value} limit 1
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.entity.File">
+		select t.*,
+		       sp.space_name
+		from sys_file t
+		left join space sp
+		on sp.space_id = t.space_id
+		<include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from sys_file t  <include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="id != null and id != ''"> and t.id = #{id} </if>
+    		<if test="idVague != null and idVague != ''"> and t.id like concat('%',#{idVague},'%') </if>
+            <if test="spaceId != null and spaceId != ''"> and t.space_id = #{spaceId} </if>
+            <if test="uploadId != null and uploadId != ''"> and t.upload_id = #{uploadId} </if>
+    		<if test="uploadIdVague != null and uploadIdVague != ''"> and t.upload_id like concat('%',#{uploadIdVague},'%') </if>
+            <if test="url != null and url != ''"> and t.url = #{url} </if>
+    		<if test="urlVague != null and urlVague != ''"> and t.url like concat('%',#{urlVague},'%') </if>
+            <if test="fileName != null and fileName != ''"> and t.file_name = #{fileName} </if>
+    		<if test="fileNameVague != null and fileNameVague != ''"> and t.file_name like concat('%',#{fileNameVague},'%') </if>
+            <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+            <if test="createTime != null and createTime != ''"> and t.create_time = #{createTime} </if>
+    		<if test="createTimeVague != null and createTimeVague != ''"> and t.create_time like concat('%',#{createTimeVague},'%') </if>
+            <if test="fileType != null and fileType != ''"> and t.file_type = #{fileType} </if>
+    		<if test="fileTypeVague != null and fileTypeVague != ''"> and t.file_type like concat('%',#{fileTypeVague},'%') </if>
+            <if test="fileSize != null and fileSize != ''"> and t.file_size = #{fileSize} </if>
+    		<if test="fileSizeVague != null and fileSizeVague != ''"> and t.file_size like concat('%',#{fileSizeVague},'%') </if>
+			<if test="ossYn != null and ossYn != ''"> and t.oss_yn = #{ossYn} </if>
+			<if test="ossYnVague != null and ossYnVague != ''"> and t.oss_yn like concat('%',#{ossYnVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.entity.File" useGeneratedKeys="true" keyProperty="id">
+		insert into sys_file
+		(
+			`space_id`,
+			`upload_id`,
+			`url`,
+			`thumbnail_url`,
+			`file_name`, 
+			`create_time`, 
+			`create_by`,
+			`file_type`,
+			`oss_yn`,
+			`file_size`
+		)
+		values
+		(
+			#{spaceId},
+			#{uploadId},
+			#{url},
+			#{thumbnailUrl},
+			#{fileName}, 
+			NOW(),
+			#{createBy},
+			#{fileType},
+			#{ossYn},
+			#{fileSize}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.entity.File">
+		update sys_file 
+		<set>
+			<if test="spaceId != null">`space_id` = #{spaceId}, </if>
+			<if test="uploadId != null">`upload_id` = #{uploadId}, </if>
+			<if test="url != null">`url` = #{url}, </if>
+			<if test="thumbnailUrl != null">`thumbnail_url` = #{thumbnailUrl}, </if>
+			<if test="fileName != null">`file_name` = #{fileName}, </if>
+			<if test="createTime != null">`create_time` = #{createTime}, </if>
+			<if test="createBy != null">`create_by` = #{createBy}, </if>
+			<if test="fileType != null">`file_type` = #{fileType}, </if>
+			<if test="fileSize != null">`file_size` = #{fileSize}, </if>
+			<if test="ossYn != null">`oss_yn` = #{ossYn}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from sys_file where id = #{value}
+	</delete>
+
+	<delete id="deleteByRelationId">
+		delete from sys_file where upload_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from sys_file where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.story.dao.SpaceStoryItemDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.story.entity.SpaceStoryItem" id="spaceStoryItemMap">
+        <result property="storyId" column="story_id"/>
+        <result property="itemImage" column="item_image"/>
+        <result property="itemContent" column="item_content"/>
+    </resultMap>
+
+    <select id="get" resultType="xin.xiaoer.modules.story.entity.SpaceStoryItem">
+		select t.story_id,
+			t.item_content,
+			t.type,
+			file.url AS item_image
+		FROM space_story_item t
+		LEFT JOIN sys_file file
+		ON file.upload_id = t.item_image
+		where story_id = #{value}
+	</select>
+
+    <select id="getListByStoryId" resultType="xin.xiaoer.modules.story.entity.SpaceStoryItem">
+		select t.* FROM space_story_item t where story_id = #{value}
+	</select>
+
+    <select id="getList" resultType="xin.xiaoer.modules.story.entity.SpaceStoryItem">
+        select t.story_id,
+        t.item_content,
+        t.type,
+        file.url AS item_image
+        FROM space_story_item t
+        LEFT JOIN sys_file file
+        ON file.upload_id = t.item_image
+        <include refid="where_clause"/>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by t.${sidx} ${order}
+            </when>
+            <otherwise>
+                order by t.story_id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="getCount" resultType="int">
+        select count(*) from space_story_item t
+        <include refid="where_clause"/>
+    </select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="storyId != null and storyId != ''">and t.story_id = #{storyId}</if>
+            <if test="storyIdVague != null and storyIdVague != ''">and t.story_id like concat('%',#{storyIdVague},'%')
+            </if>
+            <if test="itemImage != null and itemImage != ''">and t.item_image = #{itemImage}</if>
+            <if test="itemImageVague != null and itemImageVague != ''">and t.item_image like
+                concat('%',#{itemImageVague},'%')
+            </if>
+            <if test="itemContent != null and itemContent != ''">and t.item_content = #{itemContent}</if>
+            <if test="itemContentVague != null and itemContentVague != ''">and t.item_content like
+                concat('%',#{itemContentVague},'%')
+            </if>
+        </where>
+    </sql>
+
+    <insert id="save" parameterType="xin.xiaoer.modules.story.entity.SpaceStoryItem">
+		insert into space_story_item
+		(
+			`story_id`,
+			`item_image`,
+			`item_content`,
+			`type`
+		)
+		values
+		(
+			#{storyId},
+			#{itemImage},
+			#{itemContent},
+			#{type}
+		)
+	</insert>
+
+    <update id="update" parameterType="xin.xiaoer.modules.story.entity.SpaceStoryItem">
+        update space_story_item
+        <set>
+            <if test="itemImage != null">`item_image` = #{itemImage},</if>
+            <if test="itemContent != null">`item_content` = #{itemContent}</if>
+            <if test="type != null">`type` = #{type}</if>
+        </set>
+        where story_id = #{storyId}
+    </update>
+
+    <delete id="delete">
+		delete from space_story_item where story_id = #{value}
+	</delete>
+
+    <delete id="deleteBatch">
+        delete from space_story_item where story_id in
+        <foreach item="storyId" collection="array" open="(" separator="," close=")">
+            #{storyId}
+        </foreach>
+    </delete>
+
+</mapper>

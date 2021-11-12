@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.book.dao.BookChapterDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.book.entity.BookChapter" id="bookChapterMap">
+        <result property="chapterId" column="chapter_id"/>
+        <result property="bookFile" column="book_file"/>
+        <result property="chapterIndex" column="chapter_index"/>
+        <result property="title" column="title"/>
+		<result property="bookSubject" column="book_subject"/>
+        <result property="content" column="content"/>
+        <result property="index" column="index"/>
+        <result property="pageNumber" column="page_number"/>
+        <result property="textCount" column="text_count"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.book.entity.BookChapter">
+		select chapter.*,
+			book.subject AS book_subject,
+			book.book_id
+		from book_chapter chapter, book book
+		where chapter_id = #{value}
+		AND chapter.book_file = book.book_file
+	</select>
+
+	<select id="getListByBookFile" resultType="xin.xiaoer.modules.book.entity.BookChapter">
+		select * from book_chapter where book_file = #{value}
+	</select>
+
+	<select id="getCountByBookFile" resultType="int">
+		select count(*) from book_chapter where book_file = #{value}
+	</select>
+
+	<select id="getListData" resultType="xin.xiaoer.modules.book.entity.BookChapter">
+		select t.chapter_id,
+			t.book_file,
+			t.chapter_index,
+			t.index,
+			t.title,
+			t.text_count,
+			t.page_number,
+			book.subject AS book_subject
+		from book_chapter t, book book <include refid="where_clause" />
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by t.${sidx} ${order}
+			</when>
+			<otherwise>
+				order by t.chapter_id desc
+			</otherwise>
+		</choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<select id="getCountData" resultType="int">
+		select count(*) from book_chapter t, book book  <include refid="where_clause" />
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.book.entity.BookChapter">
+		select * from book_chapter t, book book <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by t.${sidx} ${order}
+            </when>
+			<otherwise>
+                order by t.chapter_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from book_chapter t, book book <include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+			AND t.book_file = book.book_file
+            <if test="chapterId != null and chapterId != ''"> and t.chapter_id = #{chapterId} </if>
+    		<if test="chapterIdVague != null and chapterIdVague != ''"> and t.chapter_id like concat('%',#{chapterIdVague},'%') </if>
+            <if test="bookFile != null and bookFile != ''"> and t.book_file = #{bookFile} </if>
+    		<if test="bookFileVague != null and bookFileVague != ''"> and t.book_file like concat('%',#{bookFileVague},'%') </if>
+            <if test="chapterIndex != null and chapterIndex != ''"> and t.chapter_index = #{chapterIndex} </if>
+    		<if test="chapterIndexVague != null and chapterIndexVague != ''"> and t.chapter_index like concat('%',#{chapterIndexVague},'%') </if>
+            <if test="title != null and title != ''"> and t.title = #{title} </if>
+    		<if test="titleVague != null and titleVague != ''"> and t.title like concat('%',#{titleVague},'%') </if>
+            <if test="content != null and content != ''"> and t.content = #{content} </if>
+    		<if test="contentVague != null and contentVague != ''"> and t.content like concat('%',#{contentVague},'%') </if>
+            <if test="index != null and index != ''"> and t.index = #{index} </if>
+    		<if test="indexVague != null and indexVague != ''"> and t.index like concat('%',#{indexVague},'%') </if>
+            <if test="pageNumber != null and pageNumber != ''"> and t.page_number = #{pageNumber} </if>
+    		<if test="pageNumberVague != null and pageNumberVague != ''"> and t.page_number like concat('%',#{pageNumberVague},'%') </if>
+            <if test="textCount != null and textCount != ''"> and t.text_count = #{textCount} </if>
+    		<if test="textCountVague != null and textCountVague != ''"> and t.text_count like concat('%',#{textCountVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.book.entity.BookChapter" useGeneratedKeys="true" keyProperty="chapterId">
+		insert into book_chapter
+		(
+			`book_file`, 
+			`chapter_index`, 
+			`title`, 
+			`content`, 
+			`index`, 
+			`page_number`, 
+			`text_count`
+		)
+		values
+		(
+			#{bookFile}, 
+			#{chapterIndex}, 
+			#{title}, 
+			#{content}, 
+			#{index}, 
+			#{pageNumber}, 
+			#{textCount}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.book.entity.BookChapter">
+		update book_chapter 
+		<set>
+			<if test="bookFile != null">`book_file` = #{bookFile}, </if>
+			<if test="chapterIndex != null">`chapter_index` = #{chapterIndex}, </if>
+			<if test="title != null">`title` = #{title}, </if>
+			<if test="content != null">`content` = #{content}, </if>
+			<if test="index != null">`index` = #{index}, </if>
+			<if test="pageNumber != null">`page_number` = #{pageNumber}, </if>
+			<if test="textCount != null">`text_count` = #{textCount}</if>
+		</set>
+		where chapter_id = #{chapterId}
+	</update>
+	
+	<delete id="delete">
+		delete from book_chapter where chapter_id = #{value}
+	</delete>
+
+	<delete id="deleteByBookFile">
+		delete from book_chapter where book_file = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from book_chapter where chapter_id in 
+		<foreach item="chapterId" collection="array" open="(" separator="," close=")">
+			#{chapterId}
+		</foreach>
+	</delete>
+
+</mapper>

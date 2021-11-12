@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.spaceshow.dao.ActivityShowDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.spaceshow.entity.ActivityShow" id="activityShowMap">
+        <result property="id" column="id"/>
+        <result property="activityId" column="activity_id"/>
+        <result property="showId" column="show_id"/>
+        <result property="createAt" column="create_at"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.spaceshow.entity.ActivityShow">
+		select * from activity_show where id = #{value}
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.spaceshow.entity.ActivityShow">
+		select * from activity_show t <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from activity_show t  <include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="id != null and id != ''"> and t.id = #{id} </if>
+    		<if test="idVague != null and idVague != ''"> and t.id like concat('%',#{idVague},'%') </if>
+            <if test="activityId != null and activityId != ''"> and t.activity_id = #{activityId} </if>
+    		<if test="activityIdVague != null and activityIdVague != ''"> and t.activity_id like concat('%',#{activityIdVague},'%') </if>
+            <if test="showId != null and showId != ''"> and t.show_id = #{showId} </if>
+    		<if test="showIdVague != null and showIdVague != ''"> and t.show_id like concat('%',#{showIdVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.spaceshow.entity.ActivityShow" useGeneratedKeys="true" keyProperty="id">
+		insert into activity_show
+		(
+			`activity_id`, 
+			`show_id`, 
+			`create_at`
+		)
+		values
+		(
+			#{activityId}, 
+			#{showId}, 
+			NOW()
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.spaceshow.entity.ActivityShow">
+		update activity_show 
+		<set>
+			<if test="activityId != null">`activity_id` = #{activityId}, </if>
+			<if test="showId != null">`show_id` = #{showId}, </if>
+			`create_at` = NOW()
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from activity_show where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from activity_show where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

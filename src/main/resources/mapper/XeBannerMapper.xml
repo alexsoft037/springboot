@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.xebanner.dao.XeBannerDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.xebanner.entity.XeBanner" id="xeBannerMap">
+        <result property="id" column="id"/>
+        <result property="bnUrl" column="bn_url"/>
+        <result property="bnTypeCode" column="bn_type_code"/>
+        <result property="bnName" column="bn_name"/>
+        <result property="bnText" column="bn_text"/>
+        <result property="bnLink" column="bn_link"/>
+        <result property="htmlId" column="html_id"/>
+        <result property="articleType" column="article_type"/>
+        <result property="articleTypeName" column="article_type_name"/>
+        <result property="articleId" column="article_id"/>
+        <result property="articleYN" column="article_yn"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateAt" column="update_at"/>
+        <result property="updateBy" column="update_by"/>
+    </resultMap>
+
+    <select id="get" resultType="xin.xiaoer.modules.xebanner.entity.XeBanner">
+		select * from xe_banner where id = #{value}
+	</select>
+
+    <select id="getListStory" resultType="xin.xiaoer.modules.xebanner.entity.XeBannerStory">
+        SELECT
+            ban.*, artType.para_name AS article_type_name,ssi.type
+        FROM
+            xe_banner ban
+        LEFT JOIN space_story_item ssi ON ban.article_id = ssi.story_id
+        LEFT JOIN sys_commpara artType ON artType.para_key = ban.article_type
+        WHERE
+            ban.bn_type_code = 'BNT002'
+            AND ban.state = '1'
+	</select>
+
+    <select id="getList" resultType="xin.xiaoer.modules.xebanner.entity.XeBanner">
+        select * from (SELECT ban.*, artType.para_name AS article_type_name FROM xe_banner ban
+          LEFT JOIN sys_commpara artType
+          ON artType.para_key = ban.article_type) t
+        <include refid="where_clause"/>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="getCount" resultType="int">
+        select count(*) from (SELECT ban.*, artType.para_name AS article_type_name FROM xe_banner ban
+            LEFT JOIN sys_commpara artType
+            ON artType.para_key = ban.article_type) t
+        <include refid="where_clause"/>
+    </select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="id != null and id != ''">and t.id = #{id}</if>
+            <if test="idVague != null and idVague != ''">and t.id like concat('%',#{idVague},'%')</if>
+            <if test="bnUrl != null and bnUrl != ''">and t.bn_url = #{bnUrl}</if>
+            <if test="bnUrlVague != null and bnUrlVague != ''">and t.bn_url like concat('%',#{bnUrlVague},'%')</if>
+            <if test="bnTypeCode != null and bnTypeCode != ''">and t.bn_type_code = #{bnTypeCode}</if>
+            <if test="bnTypeCodeVague != null and bnTypeCodeVague != ''">and t.bn_type_code like concat('%',#{bnTypeCodeVague},'%')</if>
+            <if test="bnName != null and bnName != ''">and t.bn_name = #{bnName}</if>
+            <if test="bnNameVague != null and bnNameVague != ''">and t.bn_name like concat('%',#{bnNameVague},'%')</if>
+            <if test="bnText != null and bnText != ''">and t.bn_text = #{bnText}</if>
+            <if test="bnTextVague != null and bnTextVague != ''">and t.bn_text like concat('%',#{bnTextVague},'%')</if>
+            <if test="bnLink != null and bnLink != ''">and t.bn_link = #{bnLink}</if>
+            <if test="bnLinkVague != null and bnLinkVague != ''">and t.bn_link like concat('%',#{bnLinkVague},'%')</if>
+            <if test="state != null and state != ''">and t.state = #{state}</if>
+            <if test="stateVague != null and stateVague != ''">and t.state like concat('%',#{stateVague},'%')</if>
+            <if test="createAt != null and createAt != ''">and t.create_at = #{createAt}</if>
+            <if test="createAtVague != null and createAtVague != ''">and t.create_at like
+                concat('%',#{createAtVague},'%')
+            </if>
+            <if test="createBy != null and createBy != ''">and t.create_by = #{createBy}</if>
+            <if test="createByVague != null and createByVague != ''">and t.create_by like
+                concat('%',#{createByVague},'%')
+            </if>
+            <if test="updateAt != null and updateAt != ''">and t.update_at = #{updateAt}</if>
+            <if test="updateAtVague != null and updateAtVague != ''">and t.update_at like
+                concat('%',#{updateAtVague},'%')
+            </if>
+            <if test="updateBy != null and updateBy != ''">and t.update_by = #{updateBy}</if>
+            <if test="updateByVague != null and updateByVague != ''">and t.update_by like
+                concat('%',#{updateByVague},'%')
+            </if>
+        </where>
+    </sql>
+
+    <insert id="save" parameterType="xin.xiaoer.modules.xebanner.entity.XeBanner" useGeneratedKeys="true"
+            keyProperty="id">
+		insert into xe_banner
+		(
+			`bn_url`, 
+			`bn_type_code`, 
+			`bn_name`, 
+			`bn_text`,
+			`bn_link`,
+			`html_id`,
+			`article_type`,
+			`article_id`,
+			`article_yn`,
+			`state`, 
+			`create_at`, 
+			`create_by`, 
+			`update_at`, 
+			`update_by`
+		)
+		values
+		(
+			#{bnUrl}, 
+			#{bnTypeCode}, 
+			#{bnName}, 
+			#{bnText},
+			#{bnLink},
+			#{htmlId},
+			#{articleType},
+			#{articleId},
+			#{articleYN},
+			#{state}, 
+		    NOW(),
+			#{createBy}, 
+		    NOW(),
+			#{updateBy}
+		)
+	</insert>
+
+    <update id="update" parameterType="xin.xiaoer.modules.xebanner.entity.XeBanner">
+        update xe_banner
+        <set>
+            <if test="bnUrl != null">`bn_url` = #{bnUrl},</if>
+            <if test="bnTypeCode != null">`bn_type_code` = #{bnTypeCode},</if>
+            <if test="bnName != null">`bn_name` = #{bnName},</if>
+            <if test="bnText != null">`bn_text` = #{bnText},</if>
+            <if test="bnLink != null">`bn_link` = #{bnLink},</if>
+            <if test="htmlId != null">`html_id` = #{htmlId},</if>
+            <if test="articleType != null">`article_type` = #{articleType},</if>
+            <if test="articleId != null">`article_id` = #{articleId},</if>
+            <if test="articleYN != null">`article_yn` = #{articleYN},</if>
+            <if test="state != null">`state` = #{state},</if>
+            <if test="updateBy != null">`update_by` = #{updateBy},</if>
+            `update_at` = NOW()
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="removeArticle">
+        update xe_banner
+        <set>
+            `article_type` = NULL,
+            `article_id` = NULL
+        </set>
+        where article_type = #{articleType} AND article_id = #{articleId}
+    </update>
+
+    <delete id="delete">
+		delete from xe_banner where id = #{value}
+	</delete>
+
+    <delete id="deleteBatch">
+        delete from xe_banner where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

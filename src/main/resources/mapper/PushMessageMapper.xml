@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.dao.PushMessageDao">
+	<!--保存并返回主键-->
+    <insert id="saveAndGetId" parameterType="xin.xiaoer.entity.PushMessage" useGeneratedKeys="true" keyProperty="msgId" >
+        INSERT INTO push_message (
+			message,
+			from_user_id,
+			create_at
+		)
+		VALUES
+			(#{message}, #{fromUserId}, NOW())
+    </insert>
+	<!--保存推送目标-->
+	<insert id="saveTo" >
+		INSERT INTO push_target (
+			msg_id,
+		to_user_id
+		)
+		VALUES
+			<foreach collection="ids" item="item" index="index" separator=",">
+				(#{msgId},#{item})
+			</foreach>
+	</insert>
+</mapper>

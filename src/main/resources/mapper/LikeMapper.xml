@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.like.dao.LikeDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.like.entity.Like" id="likeMap">
+        <result property="likeId" column="like_id"/>
+        <result property="articleId" column="article_id"/>
+        <result property="articleTypeCode" column="article_type_code"/>
+        <result property="userId" column="user_id"/>
+        <result property="createAt" column="create_at"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.like.entity.Like">
+		select * from `like` where like_id = #{value}
+	</select>
+
+	<select id="getByArticleAndUser" resultType="xin.xiaoer.modules.like.entity.Like">
+		select * from `like` where article_id = #{articleId} AND article_type_code = #{articleType} AND user_id = #{userId} limit 1
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.like.entity.Like">
+		select * from `like` t <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by like_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from `like` t  <include refid="where_clause" />
+	</select>
+
+	<select id="getCountByCodeAndId" resultType="int">
+		select count(*) from `like` t
+		where t.article_type_code = #{articleType}
+		AND t.article_id = #{articleId}
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="likeId != null and likeId != ''"> and t.like_id = #{likeId} </if>
+    		<if test="likeIdVague != null and likeIdVague != ''"> and t.like_id like concat('%',#{likeIdVague},'%') </if>
+            <if test="articleId != null and articleId != ''"> and t.article_id = #{articleId} </if>
+    		<if test="articleIdVague != null and articleIdVague != ''"> and t.article_id like concat('%',#{articleIdVague},'%') </if>
+            <if test="articleTypeCode != null and articleTypeCode != ''"> and t.article_type_code = #{articleTypeCode} </if>
+    		<if test="articleTypeCodeVague != null and articleTypeCodeVague != ''"> and t.article_type_code like concat('%',#{articleTypeCodeVague},'%') </if>
+            <if test="userId != null and userId != ''"> and t.user_id = #{userId} </if>
+    		<if test="userIdVague != null and userIdVague != ''"> and t.user_id like concat('%',#{userIdVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+
+			<if test="searchFrom != null and searchFrom != ''"> and DATE_FORMAT(t.create_at, '%Y-%m-%d %H:%i:%S') &gt;= DATE_FORMAT(#{searchFrom}, '%%Y-%m-%d %H:%i:%S')</if>
+			<if test="searchTo != null and searchTo != ''"> and DATE_FORMAT(t.create_at, '%%Y-%m-%d %H:%i:%S') &lt;= DATE_FORMAT(#{searchTo}, '%Y-%m-%d %H:%i:%S')</if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.like.entity.Like" useGeneratedKeys="true" keyProperty="likeId">
+		insert into `like`
+		(
+			`article_id`, 
+			`article_type_code`, 
+			`user_id`, 
+			`create_at`
+		)
+		values
+		(
+			#{articleId}, 
+			#{articleTypeCode}, 
+			#{userId}, 
+			DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S')
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.like.entity.Like">
+		update `like`
+		<set>
+			<if test="articleId != null">`article_id` = #{articleId}, </if>
+			<if test="articleTypeCode != null">`article_type_code` = #{articleTypeCode}, </if>
+			<if test="userId != null">`user_id` = #{userId}, </if>
+			`create_at` = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S')
+		</set>
+		where like_id = #{likeId}
+	</update>
+	
+	<delete id="delete">
+		delete from `like` where like_id = #{value}
+	</delete>
+
+	<delete id="deleteByArticle">
+		delete from `like` where article_id = #{articleId} AND article_type_code = #{articleType}
+	</delete>
+
+	<delete id="deleteByArticleAndUser">
+		delete from `like` where article_id = #{articleId} AND article_type_code = #{articleType} AND user_id = #{userId}
+	</delete>
+
+	<delete id="deleteBatch">
+		delete from `like` where like_id in
+		<foreach item="likeId" collection="array" open="(" separator="," close=")">
+			#{likeId}
+		</foreach>
+	</delete>
+
+</mapper>

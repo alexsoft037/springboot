@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.activityreport.dao.ActivityReportDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.activityreport.entity.ActivityReport" id="activityReportMap">
+        <result property="reportId" column="report_id"/>
+        <result property="reportTypeCode" column="report_type_code"/>
+		<result property="reportType" column="report_type"/>
+        <result property="spaceId" column="space_id"/>
+        <result property="title" column="title"/>
+        <result property="featuredImage" column="featured_image"/>
+        <result property="content" column="content"/>
+        <result property="contentImage" column="content_image"/>
+        <result property="authorName" column="author_name"/>
+        <result property="readCount" column="read_count"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateAt" column="update_at"/>
+        <result property="updateBy" column="update_by"/>
+    </resultMap>
+
+	<select id="getListItemObject" resultType="xin.xiaoer.modules.mobile.entity.ActivityReportListItem">
+		select report.report_id as reportId,
+			report.title,
+			report.content,
+			report.create_at as createAt,
+			report.create_by as createBy,
+			file.url AS featuredImage,
+			IF(`like`.user_id, TRUE , FALSE ) AS likeYn,
+			report.review_count
+		<include refid="listDataFromWhere" />
+	</select>
+
+	<sql id="selectActivityReport">
+		select report.*,
+				review.review_count,
+				cLike.like_count,
+				cFavourite.favourite_count,
+				(if(review.review_count, review.review_count, 0) + if(cLike.like_count, cLike.like_count, 0) + if(cFavourite.favourite_count, cFavourite.favourite_count, 0)) as rlfCount
+			from activity_report report
+			left join (select count(*) as review_count,
+					article_id
+				from review where article_type_code = 'AT0003' group by article_id) as review
+			on review.article_id = report.report_id
+			left join (select count(*) as like_count,
+					article_id
+				from `like` where article_type_code = 'AT0003' group by article_id) as cLike
+			on cLike.article_id = report.report_id
+			left join (select count(*) as favourite_count,
+					article_id
+				from `favourite` where article_type_code = 'AT0003' group by article_id) as cFavourite
+			on cFavourite.article_id = report.report_id
+	</sql>
+
+	<select id="queryListData" resultType="xin.xiaoer.modules.mobile.entity.ActivityReportListItem">
+		select report.report_id as reportId,
+			report.title,
+			report.content,
+			report.create_at as createAt,
+			report.create_by as createBy,
+			file.url AS featuredImage,
+			IF(`like`.user_id, TRUE , FALSE ) as like_yn,
+			report.review_count,
+			report.like_count
+		<include refid="listDataFromWhere" />
+		order by report.rlfCount desc, report.create_at desc
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<select id="countListData" resultType="int">
+		select count(*) <include refid="listDataFromWhere" />
+	</select>
+
+	<!-- 搜索数据区域 -->
+	<sql id="listDataFromWhere">
+		from (<include refid="selectActivityReport" />) report
+		LEFT JOIN sys_file file
+		ON file.upload_id = report.featured_image
+		left join (select * from `like`
+			where article_type_code =  'AT0003'
+			and user_id = #{userId}) `like`
+		on `like`.article_id = report.report_id
+		WHERE 1 = 1
+		AND report.state = '1'
+		<if test="spaceId != null and spaceId != ''"> and report.space_id = #{spaceId} </if>
+		<if test="userId != null and userId != ''"> and report.create_by = #{userId} </if>
+		<if test="reportId != null and reportId != ''"> and report.report_id = #{reportId} </if>
+	</sql>
+	
+	<select id="get" resultType="xin.xiaoer.modules.activityreport.entity.ActivityReport">
+		select *
+		from activity_report
+		where report_id = #{value}
+	</select>
+
+	<sql id="field">
+		t.report_id,
+		t.report_type_code,
+		t.space_id,
+		t.title,
+		t.content,
+		t.author_name,
+		t.read_count,
+		t.state,
+		t.create_at,
+		t.create_by,
+		t.update_at,
+		t.update_by
+	</sql>
+
+	<select id="getDetail" resultType="xin.xiaoer.modules.activityreport.entity.ActivityReport">
+		select <include refid="field" />,
+			sfile.url as featured_image
+		from activity_report t
+		left join (select * from sys_file group by upload_id) sfile
+		on sfile.upload_id = t.featured_image
+		where t.report_id = #{value}
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.activityreport.entity.ActivityReport">
+		select t.*,
+		       sp.space_name
+		from (SELECT report.*,
+			typeCode.para_name AS report_type
+			FROM activity_report report, sys_commpara typeCode
+			WHERE report.report_type_code = typeCode.para_key) t
+		left join space sp
+		on sp.space_id = t.space_id
+		<include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by report_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*)
+		from (SELECT report.*,
+			typeCode.para_name AS report_type
+			FROM activity_report report, sys_commpara typeCode
+			WHERE report.report_type_code = typeCode.para_key) t
+		<include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="reportId != null and reportId != ''"> and t.report_id = #{reportId} </if>
+    		<if test="reportIdVague != null and reportIdVague != ''"> and t.report_id like concat('%',#{reportIdVague},'%') </if>
+            <if test="reportTypeCode != null and reportTypeCode != ''"> and t.report_type_code = #{reportTypeCode} </if>
+    		<if test="reportTypeCodeVague != null and reportTypeCodeVague != ''"> and t.report_type_code like concat('%',#{reportTypeCodeVague},'%') </if>
+            <if test="spaceId != null and spaceId != ''"> and t.space_id = #{spaceId} </if>
+    		<if test="spaceIdVague != null and spaceIdVague != ''"> and t.space_id like concat('%',#{spaceIdVague},'%') </if>
+            <if test="title != null and title != ''"> and t.title = #{title} </if>
+    		<if test="titleVague != null and titleVague != ''"> and t.title like concat('%',#{titleVague},'%') </if>
+            <if test="featuredImage != null and featuredImage != ''"> and t.featured_image = #{featuredImage} </if>
+    		<if test="featuredImageVague != null and featuredImageVague != ''"> and t.featured_image like concat('%',#{featuredImageVague},'%') </if>
+            <if test="content != null and content != ''"> and t.content = #{content} </if>
+    		<if test="contentVague != null and contentVague != ''"> and t.content like concat('%',#{contentVague},'%') </if>
+            <if test="contentImage != null and contentImage != ''"> and t.content_image = #{contentImage} </if>
+    		<if test="contentImageVague != null and contentImageVague != ''"> and t.content_image like concat('%',#{contentImageVague},'%') </if>
+            <if test="readCount != null and readCount != ''"> and t.read_count = #{readCount} </if>
+    		<if test="readCountVague != null and readCountVague != ''"> and t.read_count like concat('%',#{readCountVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+    		<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+            <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+    		<if test="createByVague != null and createByVague != ''"> and t.create_by like concat('%',#{createByVague},'%') </if>
+            <if test="updateAt != null and updateAt != ''"> and t.update_at = #{updateAt} </if>
+    		<if test="updateAtVague != null and updateAtVague != ''"> and t.update_at like concat('%',#{updateAtVague},'%') </if>
+            <if test="updateBy != null and updateBy != ''"> and t.update_by = #{updateBy} </if>
+    		<if test="updateByVague != null and updateByVague != ''"> and t.update_by like concat('%',#{updateByVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.activityreport.entity.ActivityReport" useGeneratedKeys="true" keyProperty="reportId">
+		insert into activity_report
+		(
+			`report_type_code`, 
+			`space_id`, 
+			`title`, 
+			`featured_image`, 
+			`content`, 
+			`content_image`, 
+			`author_name`,
+			`read_count`,
+			`state`, 
+			`create_at`, 
+			`create_by`, 
+			`update_at`, 
+			`update_by`
+		)
+		values
+		(
+			#{reportTypeCode}, 
+			#{spaceId},
+			#{title}, 
+			#{featuredImage}, 
+			#{content}, 
+			#{contentImage}, 
+			#{authorName},
+			#{readCount},
+			#{state}, 
+			DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S'),
+			#{createBy}, 
+			DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S'),
+			#{updateBy}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.activityreport.entity.ActivityReport">
+		update activity_report 
+		<set>
+			<if test="reportTypeCode != null">`report_type_code` = #{reportTypeCode}, </if>
+			<if test="spaceId != null">`space_id` = #{spaceId}, </if>
+			<if test="title != null">`title` = #{title}, </if>
+			<if test="featuredImage != null">`featured_image` = #{featuredImage}, </if>
+			<if test="content != null">`content` = #{content}, </if>
+			<if test="contentImage != null">`content_image` = #{contentImage}, </if>
+			<if test="authorName != null">`author_name` = #{authorName}, </if>
+			<if test="readCount != null and readCount != 0">`read_count` = #{readCount}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy},</if>
+			`update_at` = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S')
+		</set>
+		where report_id = #{reportId}
+	</update>
+	
+	<delete id="delete">
+		delete from activity_report where report_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from activity_report where report_id in 
+		<foreach item="reportId" collection="array" open="(" separator="," close=")">
+			#{reportId}
+		</foreach>
+	</delete>
+
+</mapper>

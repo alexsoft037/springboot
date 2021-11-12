@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.setting.dao.ClickCardDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.setting.entity.ClickCard" id="clickCardMap">
+        <result property="userId" column="user_id"/>
+        <result property="lastClickDt" column="last_click_dt"/>
+        <result property="clickCount" column="click_count"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.setting.entity.ClickCard">
+		select * from click_card where user_id = #{value}
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.setting.entity.ClickCard">
+		select * from click_card t <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by user_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from click_card t  <include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="userId != null and userId != ''"> and t.user_id = #{userId} </if>
+    		<if test="userIdVague != null and userIdVague != ''"> and t.user_id like concat('%',#{userIdVague},'%') </if>
+            <if test="lastClickDt != null and lastClickDt != ''"> and t.last_click_dt = #{lastClickDt} </if>
+    		<if test="lastClickDtVague != null and lastClickDtVague != ''"> and t.last_click_dt like concat('%',#{lastClickDtVague},'%') </if>
+            <if test="clickCount != null and clickCount != ''"> and t.click_count = #{clickCount} </if>
+    		<if test="clickCountVague != null and clickCountVague != ''"> and t.click_count like concat('%',#{clickCountVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.setting.entity.ClickCard">
+		insert into click_card
+		(
+			`user_id`, 
+			`last_click_dt`, 
+			`click_count`
+		)
+		values
+		(
+			#{userId}, 
+			#{lastClickDt},
+			#{clickCount}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.setting.entity.ClickCard">
+		update click_card 
+		<set>
+			<if test="lastClickDt != null">`last_click_dt` = #{lastClickDt}, </if>
+			<if test="clickCount != null">`click_count` = #{clickCount}</if>
+		</set>
+		where user_id = #{userId}
+	</update>
+	
+	<delete id="delete">
+		delete from click_card where user_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from click_card where user_id in 
+		<foreach item="userId" collection="array" open="(" separator="," close=")">
+			#{userId}
+		</foreach>
+	</delete>
+
+</mapper>

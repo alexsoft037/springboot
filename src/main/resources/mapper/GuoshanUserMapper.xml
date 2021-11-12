@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.guoshan.dao.GuoshanUserDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.guoshan.entity.GuoshanUser" id="guoshanUserMap">
+        <result property="userId" column="user_id"/>
+        <result property="volunteerId" column="volunteer_id"/>
+        <result property="password" column="password"/>
+        <result property="type" column="type"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateAt" column="update_at"/>
+        <result property="updateBy" column="update_by"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.guoshan.entity.GuoshanUser">
+		select * from guoshan_user where user_id = #{value}
+	</select>
+
+	<select id="getByVolunteerId" resultType="xin.xiaoer.modules.guoshan.entity.GuoshanUser">
+		select * from guoshan_user where volunteer_id = #{value}
+	</select>
+
+	<select id="getVolCount" resultType="int">
+		SELECT COUNT(gu.volunteer_id) FROM
+		guoshan_user gu
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.guoshan.entity.GuoshanUser">
+		select * from guoshan_user t <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by user_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from guoshan_user t  <include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="userId != null and userId != ''"> and t.user_id = #{userId} </if>
+    		<if test="userIdVague != null and userIdVague != ''"> and t.user_id like concat('%',#{userIdVague},'%') </if>
+            <if test="volunteerId != null and volunteerId != ''"> and t.volunteer_id = #{volunteerId} </if>
+    		<if test="volunteerIdVague != null and volunteerIdVague != ''"> and t.volunteer_id like concat('%',#{volunteerIdVague},'%') </if>
+            <if test="password != null and password != ''"> and t.password = #{password} </if>
+    		<if test="passwordVague != null and passwordVague != ''"> and t.password like concat('%',#{passwordVague},'%') </if>
+            <if test="type != null and type != ''"> and t.type = #{type} </if>
+    		<if test="typeVague != null and typeVague != ''"> and t.type like concat('%',#{typeVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+    		<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+            <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+    		<if test="createByVague != null and createByVague != ''"> and t.create_by like concat('%',#{createByVague},'%') </if>
+            <if test="updateAt != null and updateAt != ''"> and t.update_at = #{updateAt} </if>
+    		<if test="updateAtVague != null and updateAtVague != ''"> and t.update_at like concat('%',#{updateAtVague},'%') </if>
+            <if test="updateBy != null and updateBy != ''"> and t.update_by = #{updateBy} </if>
+    		<if test="updateByVague != null and updateByVague != ''"> and t.update_by like concat('%',#{updateByVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.guoshan.entity.GuoshanUser">
+		insert into guoshan_user
+		(
+			`user_id`, 
+			`volunteer_id`, 
+			`password`, 
+			`type`, 
+			`state`, 
+			`create_at`, 
+			`create_by`, 
+			`update_at`, 
+			`update_by`
+		)
+		values
+		(
+			#{userId}, 
+			#{volunteerId}, 
+			#{password}, 
+			#{type}, 
+			#{state}, 
+			NOW(),
+			#{createBy}, 
+			NOW(),
+			#{updateBy}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.guoshan.entity.GuoshanUser">
+		update guoshan_user 
+		<set>
+			<if test="volunteerId != null">`volunteer_id` = #{volunteerId}, </if>
+			<if test="password != null">`password` = #{password}, </if>
+			<if test="type != null">`type` = #{type}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy},</if>
+			`update_at` = NOW()
+		</set>
+		where user_id = #{userId}
+	</update>
+	
+	<delete id="delete">
+		delete from guoshan_user where user_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from guoshan_user where user_id in 
+		<foreach item="userId" collection="array" open="(" separator="," close=")">
+			#{userId}
+		</foreach>
+	</delete>
+
+</mapper>

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.chat.dao.ChatUserDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.chat.entity.ChatUser" id="chatUserMap">
+        <result property="userId" column="user_id"/>
+        <result property="accid" column="accid"/>
+        <result property="token" column="token"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.chat.entity.ChatUser">
+		select * from chat_user where user_id = #{value}
+	</select>
+
+	<select id="getGroupUserList" resultType="xin.xiaoer.modules.chat.entity.ChatUser">
+		select t.user_id,
+			t.accid,
+			t.create_at
+		from chat_user t, (select * from chat_group_user group by user_id, space_id) cgu
+		where t.state = '1'
+		and t.user_id = cgu.user_id
+		and cgu.space_id = #{spaceId}
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.chat.entity.ChatUser">
+		select * from chat_user t <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by user_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from chat_user t  <include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="userId != null and userId != ''"> and t.user_id = #{userId} </if>
+    		<if test="userIdVague != null and userIdVague != ''"> and t.user_id like concat('%',#{userIdVague},'%') </if>
+            <if test="accid != null and accid != ''"> and t.accid = #{accid} </if>
+    		<if test="accidVague != null and accidVague != ''"> and t.accid like concat('%',#{accidVague},'%') </if>
+            <if test="token != null and token != ''"> and t.token = #{token} </if>
+    		<if test="tokenVague != null and tokenVague != ''"> and t.token like concat('%',#{tokenVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+    		<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.chat.entity.ChatUser">
+		insert into chat_user
+		(
+			`user_id`, 
+			`accid`, 
+			`token`, 
+			`state`, 
+			`create_at`
+		)
+		values
+		(
+			#{userId}, 
+			#{accid}, 
+			#{token}, 
+			#{state}, 
+			NOW()
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.chat.entity.ChatUser">
+		update chat_user 
+		<set>
+			<if test="accid != null">`accid` = #{accid}, </if>
+			<if test="token != null">`token` = #{token}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			`create_at` = NOW()
+		</set>
+		where user_id = #{userId}
+	</update>
+	
+	<delete id="delete">
+		delete from chat_user where user_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from chat_user where user_id in 
+		<foreach item="userId" collection="array" open="(" separator="," close=")">
+			#{userId}
+		</foreach>
+	</delete>
+
+	<select id="queryByAccids" resultType="long" parameterType="java.util.List">
+		SELECT
+			cu.user_id
+		FROM
+			chat_user cu
+		WHERE cu.accid IN
+		<foreach collection="accids" item="id" index="index" open="(" close=")" separator=",">
+			#{id}
+		</foreach>
+	</select>
+
+</mapper>

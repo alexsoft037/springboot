@@ -1,0 +1,844 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.donatespace.dao.DonateSpaceDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+	<resultMap type="xin.xiaoer.modules.donatespace.entity.DonateSpace" id="donateSpaceMap">
+		<result property="itemId" column="item_id"/>
+		<result property="spaceId" column="space_id"/>
+		<result property="dsTypeCode" column="ds_type_code"/>
+		<result property="dsType" column="ds_type"/>
+		<result property="title" column="title"/>
+		<result property="description" column="description"/>
+		<result property="targetAmount" column="target_amount"/>
+		<result property="spaceImage" column="space_image"/>
+		<result property="introImage" column="intro_image"/>
+		<result property="introContent" column="intro_content"/>
+		<result property="processImage" column="process_image"/>
+		<result property="processContent" column="process_content"/>
+		<result property="address" column="address"/>
+		<result property="latitude" column="latitude"/>
+		<result property="longitude" column="longitude"/>
+		<result property="dsStatusCode" column="ds_status_code"/>
+		<result property="dsStatus" column="ds_status"/>
+		<result property="readCount" column="read_count"/>
+		<result property="state" column="state"/>
+		<result property="createAt" column="create_at"/>
+		<result property="createBy" column="create_by"/>
+		<result property="updateAt" column="update_at"/>
+		<result property="updateBy" column="update_by"/>
+	</resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.donatespace.entity.DonateSpace">
+		select ds.*,
+			dsi.intro_image,
+			dsi.intro_content,
+			dsp.process_image,
+			dsp.process_content
+		from donate_space ds
+		LEFT JOIN donate_space_intro dsi
+		ON ds.item_id = dsi.item_id
+		LEFT JOIN donate_space_process dsp
+		ON ds.item_id = dsp.item_id
+	 	where ds.item_id = #{value}
+	</select>
+
+	<select id="getreviewList" resultType="Map">
+		SELECT
+		ds.*, r.review_at,
+		IFNULL(r.review_count, 0) AS review_count,
+		IFNULL(l.donate_count, 0) AS donate_count
+		FROM
+		donate_space ds
+		LEFT JOIN donate_user du ON du.item_id = ds.item_id
+		LEFT JOIN (
+		SELECT
+		du.item_id,
+		COUNT(*) AS donate_count
+		FROM
+		donate_user du
+		GROUP BY
+		du.item_id
+		) l ON l.item_id = ds.item_id
+		LEFT JOIN (
+		SELECT
+		r.article_id,
+		r.article_type_code,
+		r.create_at AS review_at,
+		COUNT(*) AS review_count
+		FROM
+		review r
+		WHERE
+		r.article_type_code = 'AT0001'
+		GROUP BY
+		r.article_id
+		) r ON r.article_id = ds.item_id
+		WHERE
+		du.user_id = #{userId}
+		GROUP BY
+		ds.item_id
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by ${sidx} ${order}
+			</when>
+			<when test="sort == 'desc'">
+				order by review_at desc
+			</when>
+			<when test="sort == 'asc'">
+				order by review_at asc
+			</when>
+		</choose>
+		<if test="offset !=null and limit !=null">
+			limit #{offset},#{limit}
+		</if>
+	</select>
+
+	<select id="getreviewcount" resultType="int">
+		SELECT COUNT(du.item_id)
+		FROM
+		(SELECT * FROM donate_user du
+		WHERE du.user_id = #{userId}
+		GROUP BY du.item_id) du
+	</select>
+
+	<select id="getdonatedList" resultType="Map">
+		SELECT
+		ds.*,l.*,IFNULL(r.review_count,0)  AS review_count
+		FROM
+		donate_space ds
+		LEFT JOIN donate_user du ON du.item_id = ds.item_id
+		LEFT JOIN (
+		SELECT
+		l.item_id,l.create_at AS donate_at,
+		COUNT(*) AS donate_count
+		FROM
+		donate_user l
+		GROUP BY
+		l.item_id
+		) l ON l.item_id = ds.item_id
+		LEFT JOIN (
+		SELECT
+		r.article_id,r.article_type_code,
+		COUNT(*) AS review_count
+		FROM
+		review r
+		WHERE r.article_type_code = 'AT0001'
+		GROUP BY
+		r.article_id
+		) r ON r.article_id = ds.item_id
+		WHERE
+		du.user_id =#{userId}
+		GROUP BY ds.item_id
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by ${sidx} ${order}
+			</when>
+			<when test="sort == 'desc'">
+				order by donate_at desc
+			</when>
+			<when test="sort == 'asc'">
+				order by donate_at asc
+			</when>
+		</choose>
+		<if test="offset !=null and limit !=null">
+			limit #{offset},#{limit}
+		</if>
+	</select>
+
+	<select id="getdonatedcount" resultType="int">
+		SELECT COUNT(aa.item_id)
+		FROM
+		(SELECT ds.*,COUNT(du.user_id) AS countdonate
+		FROM donate_space ds
+		LEFT JOIN donate_user du
+		ON ds.item_id = du.item_id
+		WHERE du.user_id = #{userId}
+		GROUP BY ds.item_id
+		ORDER BY ds.create_at DESC) aa
+	</select>
+
+
+	<select id="getDetail" resultType="xin.xiaoer.modules.donatespace.entity.DonateSpace">
+		select ds.item_id,
+		ds.space_id,
+		ds.ds_type_code,
+		ds.title,
+		ds.description,
+		ds.target_amount,
+		ds.address,
+		ds.latitude,
+		ds.longitude,
+		ds.ds_status_code,
+		ds.read_count,
+		ds.state,
+		ds.create_at,
+		ds.create_by,
+		ds.update_at,
+		ds.update_at,
+		file1.url as space_image,
+		file2.url as intro_image,
+		dsi.intro_content,
+		file3.url as process_image,
+		dsp.process_content
+		from donate_space ds
+		LEFT JOIN donate_space_intro dsi
+		ON ds.item_id = dsi.item_id
+		LEFT JOIN donate_space_process dsp
+		ON ds.item_id = dsp.item_id
+		left join (select * from sys_file group by upload_id) file1
+		on file1.upload_id = ds.space_image
+		left join (select * from sys_file group by upload_id) file2
+		on file2.upload_id = dsi.intro_image
+		left join (select * from sys_file group by upload_id) file3
+		on file3.upload_id = dsp.process_image
+		where ds.item_id = #{value}
+	</select>
+
+	<select id="getListItemObject" resultType="xin.xiaoer.modules.mobile.entity.DSpaceListItem">
+		SELECT donate.item_id AS itemId,
+		donate.space_id AS spaceId,
+		donate.title,
+		donate.type,
+		donate.typeCode,
+		donate.status,
+		donate.statusCode,
+		donate.create_at as createAt,
+		file.url as feturedImage,
+		du.donateUserCount
+		<include refid="DSpaceFromWhere" />
+		LEFT JOIN (select du.*,
+		COUNT(du.id) as donateUserCount
+		from (select du.* from donate_user du, sys_user su where du.user_id = su.user_id) du GROUP BY du.item_id) du
+		ON du.item_id = donate.item_id
+	</select>
+
+	<select id="getFeaturedItemList" resultType="xin.xiaoer.modules.mobile.entity.DSpaceListItem">
+		SELECT donate.item_id AS itemId,
+		donate.space_id AS spaceId,
+		donate.title,
+		donate.type,
+		donate.typeCode,
+		donate.status,
+		donate.statusCode,
+		donate.create_at as createAt,
+		file.url as feturedImage,
+		COUNT(du.id) as donateUserCount
+		FROM (select t.item_id,
+		t.title,
+		t.space_id,
+		`type`.para_name as `type`,
+		t.ds_type_code as typeCode,
+		t.space_image,
+		status.para_name AS status,
+		t.ds_status_code AS statusCode,
+		t.create_at,
+		t.rlrCount
+		from (select ds.*,
+		(if(review.review_count, review.review_count, 0) + if(cLike.like_count, cLike.like_count, 0) + if(ds.read_count, ds.read_count, 0)) as rlrCount
+		from donate_space ds
+		left join (select count(*) as review_count,
+		article_id
+		from review where article_type_code = 'AT0001' group by article_id) as review
+		on review.article_id = ds.item_id
+		left join (select count(*) as like_count,
+		article_id
+		from `like` where article_type_code = 'AT0001' group by article_id) as cLike
+		on cLike.article_id = ds.item_id) t, sys_commpara `type`, sys_commpara status
+		WHERE t.ds_type_code = `type`.para_key
+		AND t.state = '1'
+		AND `type`.para_code = 'donateSpaceType'
+		<if test="typeCode != null and typeCode != ''"> AND t.ds_type_code = #{typeCode} </if>
+		<if test="spaceId != null and spaceId != ''"> AND t.space_id = #{spaceId} </if>
+		AND status.para_code = 'donateSpaceStatus'
+		AND t.ds_status_code = status.para_key) AS donate
+		LEFT JOIN (select * from sys_file group by upload_id) file
+		ON donate.space_image = file.upload_id
+		LEFT JOIN (select du.* from donate_user du, sys_user su where du.user_id = su.user_id) du
+		ON du.item_id = donate.item_id
+		GROUP BY donate.item_id
+		order by donate.rlrCount desc, donate.create_at desc
+		limit 0, 3
+	</select>
+
+	<select id="getDSpaceListData" resultType="xin.xiaoer.modules.mobile.entity.DSpaceListItem">
+		SELECT donate.item_id AS itemId,
+		donate.space_id AS spaceId,
+		donate.title,
+		donate.type,
+		donate.typeCode,
+		donate.status,
+		donate.statusCode,
+		donate.create_at as createAt,
+		file.url as feturedImage,
+		du.donateUserCount
+		<include refid="DSpaceFromWhere" />
+		LEFT JOIN (select du.*,
+		COUNT(du.id) as donateUserCount
+		from (select du.* from donate_user du, sys_user su where du.user_id = su.user_id) du GROUP BY du.item_id) du
+		ON du.item_id = donate.item_id
+		LEFT JOIN (SELECT sp.space_id
+		FROM space sp
+		WHERE sp.state = '1'
+		<if test="city != null and city != ''"> and sp.city = #{city} </if>) sid
+		ON donate.space_id = sid.space_id
+		WHERE donate.space_id = sid.space_id
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<select id="getCountDSpace" resultType="int">
+		select count(donate.item_id) <include refid="DSpaceFromWhere" />
+	</select>
+
+	<select id="gettotal" resultType="Map">
+		select sum(du.donate_amount) AS totalMoney,COUNT(du.item_id) AS totalItem FROM donate_user du
+	</select>
+
+
+
+	<select id="getdonateintro" resultType="Map">
+		SELECT
+		dsi.*, sf.url
+		FROM
+		donate_space_intro dsi
+		LEFT JOIN sys_file sf ON dsi.intro_image = sf.upload_id
+		WHERE
+		dsi.item_id = #{itemId}
+	</select>
+
+
+	<select id="getdonateprocess" resultType="Map">
+		SELECT
+		dsp.*, sf.url
+		FROM
+		donate_space_process dsp
+		LEFT JOIN sys_file sf ON dsp.process_image = sf.upload_id
+		WHERE
+		dsp.item_id = #{itemId}
+	</select>
+
+	<select id="getdonatereviewlist" resultType="Map">
+			SELECT t.*,sf.url
+			FROM
+			(SELECT
+						re.*, su.nickname,su.avatar,
+						COUNT(t.article_id) AS xihuan
+					FROM
+						review re
+					LEFT JOIN sys_user su ON re.user_id = su.user_id
+					LEFT JOIN (
+						SELECT
+							*
+						FROM
+							`like`
+						WHERE
+							article_type_code = 'AT0011'
+					) t ON re.review_id = t.article_id
+					WHERE
+						re.article_type_code = 'AT0001'
+					AND re.article_id = #{itemId}
+					GROUP BY
+						re.review_id) t
+			LEFT JOIN sys_file sf
+			ON t.avatar = sf.upload_id
+	</select>
+
+	<select id="gethonorbyregion" resultType="Map">
+		SELECT a.*,b.people,c.donatecount,c.donateamount,d.integral
+		FROM space sp
+		LEFT JOIN(SELECT sp.space_id,sp.space_name,re.region_name
+		FROM
+		space sp
+		LEFT JOIN region re
+		ON sp.space_id = re.space_id) a ON sp.space_id = a.space_id
+		LEFT JOIN(SELECT COUNT(DISTINCT du.user_id) AS people,t.space_id
+		FROM donate_user du,(SELECT item_id,space_id
+		FROM donate_space GROUP BY item_id) t
+		WHERE du.item_id = t.item_id
+		GROUP BY t.space_id) b ON sp.space_id = b.space_id
+		LEFT JOIN(SELECT ds.space_id,
+		COUNT(du.user_id) AS donatecount,
+		SUM(du.donate_amount) AS donateamount
+		FROM donate_user du
+		LEFT JOIN donate_space ds
+		ON du.item_id = ds.item_id
+		GROUP BY ds.space_id) c ON sp.space_id = c.space_id
+		LEFT JOIN(SELECT SUM(ig.integral) as integral,tt.space_id
+		FROM integral ig
+		LEFT JOIN
+		(SELECT DISTINCT du.user_id,t.space_id
+		FROM donate_user du
+		LEFT JOIN
+		(SELECT item_id,space_id
+		FROM donate_space GROUP BY item_id) t
+		ON du.item_id = t.item_id
+		) tt
+		ON ig.user_id = tt.user_id
+		GROUP BY tt.space_id) d ON sp.space_id = d.space_id
+		<if test="regionName != null and regionName != ''"> WHERE a.region_name = #{regionName}</if>
+		GROUP BY sp.space_id
+	</select>
+
+	<select id="gethonorbygroup" resultType="Map">
+			SELECT a.*,b.people,c.donatecount,c.donateamount,d.integral
+			FROM space sp
+			LEFT JOIN(SELECT sp.space_id,sp.space_name,re.region_name
+								FROM
+								space sp
+								LEFT JOIN region re
+								ON sp.space_id = re.space_id) a ON sp.space_id = a.space_id
+			LEFT JOIN(SELECT COUNT(DISTINCT du.user_id) AS people,t.space_id
+								FROM donate_user du,(SELECT item_id,space_id
+								FROM donate_space GROUP BY item_id) t
+								WHERE du.item_id = t.item_id
+								GROUP BY t.space_id) b ON sp.space_id = b.space_id
+			LEFT JOIN(SELECT ds.space_id,
+											 COUNT(du.user_id) AS donatecount,
+											 SUM(du.donate_amount) AS donateamount
+								FROM donate_user du
+								LEFT JOIN donate_space ds
+								ON du.item_id = ds.item_id
+								GROUP BY ds.space_id) c ON sp.space_id = c.space_id
+			LEFT JOIN(SELECT SUM(ig.integral) as integral,tt.space_id
+								FROM integral ig
+								LEFT JOIN
+								(SELECT DISTINCT du.user_id,t.space_id
+									FROM donate_user du
+									LEFT JOIN
+									(SELECT item_id,space_id
+									FROM donate_space GROUP BY item_id) t
+			ON du.item_id = t.item_id
+									) tt
+			ON ig.user_id = tt.user_id
+			GROUP BY tt.space_id) d ON sp.space_id = d.space_id
+			GROUP BY sp.space_id
+			ORDER BY d.integral DESC
+	</select>
+
+	<select id="gethonorbyvolunteer" resultType="Map">
+		SELECT
+			gu.user_id,
+			su.nickname,
+			COUNT(du.item_id) AS donatecount,
+			SUM(du.donate_amount) AS donateamount,
+			SUM(ig.integral) AS integral
+		FROM
+			guoshan_user gu
+		LEFT JOIN sys_user su ON gu.user_id = su.user_id
+		LEFT JOIN donate_user du ON gu.user_id = du.user_id
+		LEFT JOIN integral ig ON gu.user_id = ig.user_id
+		GROUP BY
+			gu.user_id
+		ORDER BY integral DESC
+	</select>
+
+	<select id="gethonorbysearch" resultType="Map">
+		SELECT * FROM
+		(SELECT a.*,b.people,c.donatecount,c.donateamount,d.integral
+		FROM space sp
+		LEFT JOIN(SELECT sp.space_id,sp.space_name,re.region_name
+		FROM
+		space sp
+		LEFT JOIN region re
+		ON sp.space_id = re.space_id) a ON sp.space_id = a.space_id
+		LEFT JOIN(SELECT COUNT(DISTINCT du.user_id) AS people,t.space_id
+		FROM donate_user du,(SELECT item_id,space_id
+		FROM donate_space GROUP BY item_id) t
+		WHERE du.item_id = t.item_id
+		GROUP BY t.space_id) b ON sp.space_id = b.space_id
+		LEFT JOIN(SELECT ds.space_id,
+		COUNT(du.user_id) AS donatecount,
+		SUM(du.donate_amount) AS donateamount
+		FROM donate_user du
+		LEFT JOIN donate_space ds
+		ON du.item_id = ds.item_id
+		GROUP BY ds.space_id) c ON sp.space_id = c.space_id
+		LEFT JOIN(SELECT SUM(ig.integral) as integral,tt.space_id
+		FROM integral ig
+		LEFT JOIN
+		(SELECT DISTINCT du.user_id,t.space_id
+		FROM donate_user du
+		LEFT JOIN
+		(SELECT item_id,space_id
+		FROM donate_space GROUP BY item_id) t
+		ON du.item_id = t.item_id
+		) tt
+		ON ig.user_id = tt.user_id
+		GROUP BY tt.space_id) d ON sp.space_id = d.space_id
+		GROUP BY sp.space_id
+		ORDER BY d.integral DESC) t
+		<where>
+			1=1
+			<if test="parameter!=null">
+				AND t.space_name  like concat('%',#{parameter},'%')
+			</if>
+			OR t.region_name like concat('%',#{parameter},'%')
+		</where>
+        <if test="offset !=null and limit !=null">
+            limit #{offset},#{limit}
+        </if>
+	</select>
+
+
+    <select id="getsearchCount" resultType="int">
+        SELECT COUNT(*) FROM
+        (SELECT a.*,b.people,c.donatecount,c.donateamount,d.integral
+        FROM space sp
+        LEFT JOIN(SELECT sp.space_id,sp.space_name,re.region_name
+        FROM
+        space sp
+        LEFT JOIN region re
+        ON sp.space_id = re.space_id) a ON sp.space_id = a.space_id
+        LEFT JOIN(SELECT COUNT(DISTINCT du.user_id) AS people,t.space_id
+        FROM donate_user du,(SELECT item_id,space_id
+        FROM donate_space GROUP BY item_id) t
+        WHERE du.item_id = t.item_id
+        GROUP BY t.space_id) b ON sp.space_id = b.space_id
+        LEFT JOIN(SELECT ds.space_id,
+        COUNT(du.user_id) AS donatecount,
+        SUM(du.donate_amount) AS donateamount
+        FROM donate_user du
+        LEFT JOIN donate_space ds
+        ON du.item_id = ds.item_id
+        GROUP BY ds.space_id) c ON sp.space_id = c.space_id
+        LEFT JOIN(SELECT SUM(ig.integral) as integral,tt.space_id
+        FROM integral ig
+        LEFT JOIN
+        (SELECT DISTINCT du.user_id,t.space_id
+        FROM donate_user du
+        LEFT JOIN
+        (SELECT item_id,space_id
+        FROM donate_space GROUP BY item_id) t
+        ON du.item_id = t.item_id
+        ) tt
+        ON ig.user_id = tt.user_id
+        GROUP BY tt.space_id) d ON sp.space_id = d.space_id
+        GROUP BY sp.space_id
+        ORDER BY d.integral DESC) t
+        <where>
+            1=1
+            <if test="parameter!=null">
+                AND t.space_name  like concat('%',#{parameter},'%')
+            </if>
+            OR t.region_name like concat('%',#{parameter},'%')
+        </where>
+    </select>
+
+	<select id="gettotalbyuser" resultType="Map">
+		SELECT
+			IFNULL(sum(du.donate_amount),0)AS myTotalMoney,
+			IFNULL(COUNT(du.item_id),0) AS myTotalItem,
+			du.user_id,
+			IFNULL(t.rank,0) AS rank,
+			IFNULL(t.integral,0) AS integral
+		FROM
+			donate_user du
+		LEFT JOIN (
+			SELECT
+				SUM(ig.integral) AS integral,
+				FLOOR(
+					(SUM(ig.integral) - 1) / 1000 + 1
+				) AS rank,
+				ig.user_id
+			FROM
+				integral ig
+			WHERE
+				ig.article_type_code = 'AT0001'
+			AND ig.user_id = #{userId}
+		) t ON du.user_id = t.user_id
+		WHERE
+			du.user_id = #{userId}
+	</select>
+
+	<sql id="DSpaceFromWhere">
+		FROM (select t.item_id,
+		t.title,
+		t.space_id,
+		`type`.para_name as `type`,
+		t.ds_type_code as typeCode,
+		t.space_image,
+		status.para_name AS status,
+		t.ds_status_code AS statusCode,
+		t.create_at
+		from donate_space t, sys_commpara `type`, sys_commpara status
+		WHERE t.ds_type_code = `type`.para_key
+		AND t.state = '1'
+		AND `type`.para_code = 'donateSpaceType'
+		<if test="dsTypeCode != null and dsTypeCode != ''"> AND t.ds_type_code = #{dsTypeCode} </if>
+		<if test="itemId != null and itemId != ''"> AND t.item_id = #{itemId} </if>
+		<if test="spaceId != null and spaceId != ''"> and t.space_id = #{spaceId} </if>
+		AND status.para_code = 'donateSpaceStatus'
+		AND t.ds_status_code = status.para_key) AS donate
+		LEFT JOIN (select * from sys_file group by upload_id) file
+		ON donate.space_image = file.upload_id
+	</sql>
+
+	<select id="getPersonalList" resultType="xin.xiaoer.modules.mobile.entity.PersonalDonate">
+		select t.*,
+		file.url as featured_image
+		from (select ds.item_id,
+		ds.space_id,
+		ds.title,
+		ds.description,
+		du.donate_amount,
+		du.create_at as donate_date,
+		ds.space_image
+		from donate_space ds, (select du.* from donate_user du, sys_user su where du.user_id = su.user_id) du
+		where ds.item_id = du.item_id
+		and ds.state = '1'
+		and du.user_id = #{userId}
+		<if test="spaceId != null and spaceId != ''"> and ds.space_id = #{spaceId} </if>) t
+		left join (select * from sys_file group by upload_id) file
+		on file.upload_id = t.space_image
+		order by t.donate_date DESC
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<select id="getPersonalCount" resultType="int">
+		select count(*) from (select ds.item_id,
+		ds.space_id,
+		ds.title,
+		ds.description,
+		du.donate_amount,
+		du.create_at as donate_date,
+		ds.space_image
+		from donate_space ds, (select du.* from donate_user du, sys_user su where du.user_id = su.user_id) du
+		where ds.item_id = du.item_id
+		and ds.state = '1'
+		and du.user_id = #{userId}
+		<if test="spaceId != null and spaceId != ''"> and ds.space_id = #{spaceId} </if>) t
+		left join (select * from sys_file group by upload_id) file
+		on file.upload_id = t.space_image
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.donatespace.entity.DonateSpace">
+		select t.*,
+		dsi.intro_image,
+		dsi.intro_content,
+		dsp.process_image,
+		dsp.process_content,
+		sp.space_name
+		from (SELECT `space`.*, dsType.para_name AS ds_type, dsStatus.para_name AS ds_status
+		FROM donate_space `space`, sys_commpara dsType, sys_commpara dsStatus
+		WHERE `space`.ds_type_code = dsType.para_key
+		AND `space`.ds_status_code = dsStatus.para_key) t
+		LEFT JOIN donate_space_intro dsi
+		ON t.item_id = dsi.item_id
+		LEFT JOIN donate_space_process dsp
+		ON t.item_id = dsp.item_id
+		LEFT join `space` sp
+		on sp.space_id = t.space_id
+		<include refid="where_clause" />
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by t.${sidx} ${order}
+			</when>
+			<otherwise>
+				order by t.item_id desc
+			</otherwise>
+		</choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<select id="getCount" resultType="int">
+		select count(*) from (SELECT space.*, dsType.para_name AS ds_type, dsStatus.para_name AS ds_status
+		FROM donate_space space, sys_commpara dsType, sys_commpara dsStatus
+		WHERE space.ds_type_code = dsType.para_key
+		AND space.ds_status_code = dsStatus.para_key) t  <include refid="where_clause" />
+	</select>
+
+	<!-- 搜索数据区域 -->
+	<sql id="where_clause">
+		<where>
+			1=1
+			<if test="itemId != null and itemId != ''"> and t.item_id = #{itemId} </if>
+			<if test="spaceId != null and spaceId != ''"> and t.space_id = #{spaceId} </if>
+			<if test="itemIdVague != null and itemIdVague != ''"> and t.item_id like concat('%',#{itemIdVague},'%') </if>
+			<if test="dsTypeCode != null and dsTypeCode != ''"> and t.ds_type_code = #{dsTypeCode} </if>
+			<if test="dsTypeCodeVague != null and dsTypeCodeVague != ''"> and t.ds_type_code like concat('%',#{dsTypeCodeVague},'%') </if>
+			<if test="title != null and title != ''"> and t.title = #{title} </if>
+			<if test="titleVague != null and titleVague != ''"> and t.title like concat('%',#{titleVague},'%') </if>
+			<if test="description != null and description != ''"> and t.description = #{description} </if>
+			<if test="descriptionVague != null and descriptionVague != ''"> and t.description like concat('%',#{descriptionVague},'%') </if>
+			<if test="targetAmount != null and targetAmount != ''"> and t.target_amount = #{targetAmount} </if>
+			<if test="targetAmountVague != null and targetAmountVague != ''"> and t.target_amount like concat('%',#{targetAmountVague},'%') </if>
+			<if test="spaceImage != null and spaceImage != ''"> and t.space_image = #{spaceImage} </if>
+			<if test="spaceImageVague != null and spaceImageVague != ''"> and t.space_image like concat('%',#{spaceImageVague},'%') </if>
+			<if test="address != null and address != ''"> and t.address = #{address} </if>
+			<if test="addressVague != null and addressVague != ''"> and t.address like concat('%',#{addressVague},'%') </if>
+			<if test="latitude != null and latitude != ''"> and t.latitude = #{latitude} </if>
+			<if test="latitudeVague != null and latitudeVague != ''"> and t.latitude like concat('%',#{latitudeVague},'%') </if>
+			<if test="longitude != null and longitude != ''"> and t.longitude = #{longitude} </if>
+			<if test="longitudeVague != null and longitudeVague != ''"> and t.longitude like concat('%',#{longitudeVague},'%') </if>
+			<if test="dsStatusCode != null and dsStatusCode != ''"> and t.ds_status_code = #{dsStatusCode} </if>
+			<if test="dsStatusCodeVague != null and dsStatusCodeVague != ''"> and t.ds_status_code like concat('%',#{dsStatusCodeVague},'%') </if>
+			<if test="state != null and state != ''"> and t.state = #{state} </if>
+			<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+			<if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+			<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+			<if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+			<if test="createByVague != null and createByVague != ''"> and t.create_by like concat('%',#{createByVague},'%') </if>
+			<if test="updateAt != null and updateAt != ''"> and t.update_at = #{updateAt} </if>
+			<if test="updateAtVague != null and updateAtVague != ''"> and t.update_at like concat('%',#{updateAtVague},'%') </if>
+			<if test="updateBy != null and updateBy != ''"> and t.update_by = #{updateBy} </if>
+			<if test="updateByVague != null and updateByVague != ''"> and t.update_by like concat('%',#{updateByVague},'%') </if>
+		</where>
+	</sql>
+
+	<insert id="save" parameterType="xin.xiaoer.modules.donatespace.entity.DonateSpace" useGeneratedKeys="true" keyProperty="itemId">
+		insert into donate_space
+		(
+			`ds_type_code`,
+			`space_id`,
+			`title`, 
+			`description`, 
+			`target_amount`, 
+			`space_image`,
+			`address`,
+			`latitude`, 
+			`longitude`,
+			`ds_status_code`,
+			`read_count`,
+			`state`, 
+			`create_at`, 
+			`create_by`, 
+			`update_at`, 
+			`update_by`
+		)
+		values
+		(
+			#{dsTypeCode},
+			#{spaceId},
+			#{title}, 
+			#{description}, 
+			#{targetAmount}, 
+			#{spaceImage},
+			#{address},
+			#{latitude}, 
+			#{longitude},
+			#{dsStatusCode},
+			#{readCount},
+			#{state}, 
+			DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S'),
+			#{createBy}, 
+			DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S'),
+			#{updateBy}
+		)
+	</insert>
+
+	<update id="update" parameterType="xin.xiaoer.modules.donatespace.entity.DonateSpace">
+		update donate_space
+		<set>
+			<if test="dsTypeCode != null">`ds_type_code` = #{dsTypeCode}, </if>
+			<if test="spaceId != null">`space_id` = #{spaceId}, </if>
+			<if test="title != null">`title` = #{title}, </if>
+			<if test="description != null">`description` = #{description}, </if>
+			<if test="targetAmount != null">`target_amount` = #{targetAmount}, </if>
+			<if test="spaceImage != null">`space_image` = #{spaceImage}, </if>
+			<if test="address != null">`address` = #{address}, </if>
+			<if test="latitude != null">`latitude` = #{latitude}, </if>
+			<if test="longitude != null">`longitude` = #{longitude}, </if>
+			<if test="dsStatusCode != null">`ds_status_code` = #{dsStatusCode}, </if>
+			<if test="readCount != null and readCount != 0">`read_count` = #{readCount}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy},</if>
+			`update_at` = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S')
+		</set>
+		where item_id = #{itemId}
+	</update>
+
+	<delete id="delete">
+		delete from donate_space where item_id = #{value}
+	</delete>
+
+	<delete id="deleteBatch">
+		delete from donate_space where item_id in
+		<foreach item="itemId" collection="array" open="(" separator="," close=")">
+			#{itemId}
+		</foreach>
+	</delete>
+
+	<!--查询最新空间公益-->
+	<select id="getNewDonate" resultType="xin.xiaoer.modules.donatespace.entity.DonateSpace">
+		SELECT
+		d.item_id,
+		d.title,
+		d.create_at,
+		d.space_id
+		FROM
+		donate_space d
+		WHERE
+		d.state = '1'
+
+		<choose>
+			<when test="spaceId == null">
+				and 1=1
+			</when>
+			<when test="spaceId != null">
+				AND d.space_id = #{spaceId}
+			</when>
+		</choose>
+		ORDER BY
+		d.create_at DESC
+		<if test="offset !=null and limit != null">
+			limit #{offset},#{limit}
+		</if>
+	</select>
+
+	<select id="getTitles" resultType="map">
+		SELECT
+			ds.item_id,
+			ds.ds_type_code,
+			ds.space_id,
+			ds.title,
+			ds.create_at,
+			ds.space_image AS feturedImage,
+			r.reviewCount,
+			du.donateCount
+		FROM
+			donate_space ds
+		LEFT JOIN (
+			SELECT
+				r.article_id,
+				r.article_type_code,
+				COUNT(*) AS reviewCount
+			FROM
+				review r
+			WHERE
+				1=1
+				<if test="typeCode != null and typeCode != ''">
+					AND	r.article_type_code = #{typeCode}
+				</if>
+			GROUP BY
+				r.article_id
+		) r ON ds.item_id = r.article_id
+		LEFT JOIN (
+			SELECT
+				du.item_id,
+				COUNT(*) AS donateCount
+			FROM
+				donate_user du
+			GROUP BY
+				du.item_id
+		) du ON du.item_id = ds.item_id
+		WHERE
+			1 = 1
+		AND ds.state='1'
+		<if test="typeCode != null and typeCode != ''">
+			AND	ds.ds_type_code = #{typeCode}
+		</if>
+		<if test="spaceId != null and spaceId != ''">
+			AND ds.space_id = #{spaceId}
+		</if>
+		<if test="offset != null and limit != null">
+			LIMIT #{offset},#{limit}
+		</if>
+	</select>
+
+</mapper>

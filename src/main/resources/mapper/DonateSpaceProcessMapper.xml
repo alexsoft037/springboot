@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.donatespace.dao.DonateSpaceProcessDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.donatespace.entity.DonateSpaceProcess" id="donateSpaceProcessMap">
+        <result property="itemId" column="item_id"/>
+        <result property="processImage" column="process_image"/>
+        <result property="processContent" column="process_content"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateAt" column="update_at"/>
+        <result property="updateBy" column="update_by"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.donatespace.entity.DonateSpaceProcess">
+		select * from donate_space_process where item_id = #{value}
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.donatespace.entity.DonateSpaceProcess">
+		select * from donate_space_process t <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by item_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from donate_space_process t  <include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="itemId != null and itemId != ''"> and t.item_id = #{itemId} </if>
+    		<if test="itemIdVague != null and itemIdVague != ''"> and t.item_id like concat('%',#{itemIdVague},'%') </if>
+            <if test="processImage != null and processImage != ''"> and t.process_image = #{processImage} </if>
+    		<if test="processImageVague != null and processImageVague != ''"> and t.process_image like concat('%',#{processImageVague},'%') </if>
+            <if test="processContent != null and processContent != ''"> and t.process_content = #{processContent} </if>
+    		<if test="processContentVague != null and processContentVague != ''"> and t.process_content like concat('%',#{processContentVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+    		<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+            <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+    		<if test="createByVague != null and createByVague != ''"> and t.create_by like concat('%',#{createByVague},'%') </if>
+            <if test="updateAt != null and updateAt != ''"> and t.update_at = #{updateAt} </if>
+    		<if test="updateAtVague != null and updateAtVague != ''"> and t.update_at like concat('%',#{updateAtVague},'%') </if>
+            <if test="updateBy != null and updateBy != ''"> and t.update_by = #{updateBy} </if>
+    		<if test="updateByVague != null and updateByVague != ''"> and t.update_by like concat('%',#{updateByVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.donatespace.entity.DonateSpaceProcess">
+		insert into donate_space_process
+		(
+			`item_id`, 
+			`process_image`, 
+			`process_content`, 
+			`state`, 
+			`create_at`, 
+			`create_by`, 
+			`update_at`, 
+			`update_by`
+		)
+		values
+		(
+			#{itemId}, 
+			#{processImage}, 
+			#{processContent}, 
+			#{state}, 
+			DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S'),
+			#{createBy}, 
+			DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S'),
+			#{updateBy}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.donatespace.entity.DonateSpaceProcess">
+		update donate_space_process 
+		<set>
+			<if test="processImage != null">`process_image` = #{processImage}, </if>
+			<if test="processContent != null">`process_content` = #{processContent}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy},</if>
+			`update_at` = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S')
+		</set>
+		where item_id = #{itemId}
+	</update>
+	
+	<delete id="delete">
+		delete from donate_space_process where item_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from donate_space_process where item_id in 
+		<foreach item="itemId" collection="array" open="(" separator="," close=")">
+			#{itemId}
+		</foreach>
+	</delete>
+
+</mapper>

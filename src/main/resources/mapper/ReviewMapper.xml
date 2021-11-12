@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.review.dao.ReviewDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+	<resultMap type="xin.xiaoer.modules.review.entity.Review" id="reviewMap">
+		<result property="reviewId" column="review_id"/>
+		<result property="articleId" column="article_id"/>
+		<result property="articleTypeCode" column="article_type_code"/>
+		<result property="subject" column="subject"/>
+		<result property="content" column="content"/>
+		<result property="userId" column="user_id"/>
+		<result property="userName" column="user_name"/>
+		<result property="avatar" column="avatar"/>
+		<result property="state" column="state"/>
+		<result property="createAt" column="create_at"/>
+	</resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.review.entity.Review">
+		select review.*,
+			us.nickname as user_name,
+			us.avatar as avatar
+		from review review, sys_user us
+		where review_id = #{value}
+		AND review.user_id = us.user_id
+	</select>
+
+	<select id="getDetail" resultType="xin.xiaoer.modules.review.entity.Review">
+		select review.*,
+			sc.para_name as article_type_txt,
+			us.nickname as user_name,
+			us.avatar as avatar
+		from review review
+		left join sys_user us
+		on us.user_id = review.user_id
+		left join sys_commpara sc
+		on sc.para_key = review.article_type_code
+		where review_id = #{value}
+	</select>
+
+	<select id="getCountByArticle" resultType="int">
+		select count(*) from (select * from review t
+		where t.article_type_code = #{articleTypeCode}
+		AND t.article_id = #{articleId}
+		AND t.state = '1'
+		<if test="groupBy != null and groupBy == 'userId'"> group by user_id </if>) as reivew
+	</select>
+
+	<select id="getByArticleAndUser" resultType="xin.xiaoer.modules.review.entity.Review">
+		select * from review where article_id = #{articleId} AND article_type_code = #{articleType} AND user_id = #{userId} limit 1
+	</select>
+
+	<select id="getArticleList" resultType="xin.xiaoer.modules.review.entity.Review">
+		select t.*,
+		us.nickname as user_name,
+		us.avatar as avatar
+		from review t, sys_user us
+		<include refid="where_clause" />
+		AND t.user_id = us.user_id
+		AND t.state like '1'
+		group by t.article_id, t.article_type_code
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by t.${sidx} ${order}
+			</when>
+			<otherwise>
+				order by t.review_id desc
+			</otherwise>
+		</choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<select id="getArticleCount" resultType="int">
+		select count(*) from (select t.review_id
+		from review t, sys_user us
+		<include refid="where_clause" />
+		AND t.user_id = us.user_id
+		AND t.state like '1'
+		group by t.article_id, t.article_type_code) as review
+	</select>
+
+	<select id="getAdminList" resultType="xin.xiaoer.modules.review.entity.Review">
+		select t.*,
+		us.nickname as user_name,
+		us.avatar as avatar
+		from (select t.*,
+		sc.para_name as article_type_txt
+		from review t
+		left join sys_commpara sc
+		on sc.para_key = t.article_type_code) t
+		left join sys_user us
+		on t.user_id = us.user_id
+		<include refid="where_clause" />
+		AND t.user_id = us.user_id
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by t.${sidx} ${order}
+			</when>
+			<otherwise>
+				order by t.review_id desc
+			</otherwise>
+		</choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<select id="getAdminCount" resultType="int">
+		select count(*) from (select t.*,
+		sc.para_name as article_type_txt
+		from review t
+		left join sys_commpara sc
+		on sc.para_key = t.article_type_code) t
+		left join sys_user us
+		on t.user_id = us.user_id
+		<include refid="where_clause" />
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.review.entity.Review">
+		select t.*,
+		us.nickname as user_name,
+		us.avatar as avatar
+		from (select t.*,
+		sc.para_name as article_type_txt
+		from review t
+		left join sys_commpara sc
+		on sc.para_key = t.article_type_code) t, sys_user us
+		<include refid="where_clause" />
+		AND t.user_id = us.user_id
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by t.${sidx} ${order}
+			</when>
+			<otherwise>
+				order by t.review_id desc
+			</otherwise>
+		</choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<select id="getCount" resultType="int">
+		select count(*) from (select t.*,
+		sc.para_name as article_type_txt
+		from review t
+		left join sys_commpara sc
+		on sc.para_key = t.article_type_code) t, sys_user us
+		<include refid="where_clause" />
+		AND t.user_id = us.user_id
+	</select>
+
+	<select id="getCountByCodeAndId" resultType="int">
+		select count(*)
+		from review t
+		where t.article_type_code = #{articleType}
+		AND t.article_id = #{articleId}
+	</select>
+
+    <select id="getreviewList" resultType="Map">
+        SELECT
+        t.*, sf.url
+        FROM
+        (
+        SELECT
+        re.*, su.nickname,
+        su.avatar
+        FROM
+        review re
+        LEFT JOIN sys_user su ON re.user_id = su.user_id
+        WHERE
+        re.article_id = #{articleId}
+        AND re.article_type_code = #{articleTypeCode}
+        ) t
+        LEFT JOIN sys_file sf ON t.avatar = sf.upload_id
+		ORDER BY
+		t.create_at DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset} , #{limit}
+        </if>
+    </select>
+
+    <select id="getreviewCount" resultType="int">
+		SELECT COUNT(*)
+		FROM review re
+		WHERE re.article_id = #{articleId}
+		AND re.article_type_code = #{articleTypeCode}
+	</select>
+
+	<!-- 搜索数据区域 -->
+	<sql id="where_clause">
+		<where>
+			1=1
+			<if test="reviewId != null and reviewId != ''"> and t.review_id = #{reviewId} </if>
+			<if test="reviewIdVague != null and reviewIdVague != ''"> and t.review_id like concat('%',#{reviewIdVague},'%') </if>
+			<if test="articleId != null and articleId != ''"> and t.article_id = #{articleId} </if>
+			<if test="articleIdVague != null and articleIdVague != ''"> and t.article_id like concat('%',#{articleIdVague},'%') </if>
+			<if test="articleTypeCode != null and articleTypeCode != ''"> and t.article_type_code = #{articleTypeCode} </if>
+			<if test="articleTypeCodeVague != null and articleTypeCodeVague != ''"> and t.article_type_code like concat('%',#{articleTypeCodeVague},'%') </if>
+			<if test="subject != null and subject != ''"> and t.subject = #{subject} </if>
+			<if test="subjectVague != null and subjectVague != ''"> and t.subject like concat('%',#{subjectVague},'%') </if>
+			<if test="content != null and content != ''"> and t.content = #{content} </if>
+			<if test="contentVague != null and contentVague != ''"> and t.content like concat('%',#{contentVague},'%') </if>
+			<if test="userId != null and userId != ''"> and t.user_id = #{userId} </if>
+			<if test="userIdVague != null and userIdVague != ''"> and t.user_id like concat('%',#{userIdVague},'%') </if>
+			<if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+			<if test="state != null and state != ''"> and t.state = #{state} </if>
+			<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+		</where>
+	</sql>
+
+	<insert id="save" parameterType="xin.xiaoer.modules.review.entity.Review" useGeneratedKeys="true" keyProperty="reviewId">
+		insert into review
+		(
+			`article_id`, 
+			`article_type_code`, 
+			`subject`, 
+			`content`, 
+			`user_id`, 
+			`state`,
+			`create_at`
+		)
+		values
+		(
+			#{articleId}, 
+			#{articleTypeCode}, 
+			#{subject}, 
+			#{content}, 
+			#{userId}, 
+			#{state},
+			NOW()
+		)
+	</insert>
+
+	<update id="update" parameterType="xin.xiaoer.modules.review.entity.Review">
+		update review
+		<set>
+			<if test="articleId != null">`article_id` = #{articleId}, </if>
+			<if test="articleTypeCode != null">`article_type_code` = #{articleTypeCode}, </if>
+			<if test="subject != null">`subject` = #{subject}, </if>
+			<if test="content != null">`content` = #{content}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="userId != null">`user_id` = #{userId}</if>
+		</set>
+		where review_id = #{reviewId}
+	</update>
+
+	<delete id="delete">
+		delete from review where review_id = #{value}
+	</delete>
+
+	<delete id="deleteByArticle">
+		delete from `review` where article_id = #{articleId} AND article_type_code = #{articleType}
+	</delete>
+
+	<delete id="deleteByArticleAndUser">
+		delete from `review` where article_id = #{articleId} AND article_type_code = #{articleType} AND user_id = #{userId}
+	</delete>
+
+	<delete id="deleteBatch">
+		delete from review where review_id in
+		<foreach item="reviewId" collection="array" open="(" separator="," close=")">
+			#{reviewId}
+		</foreach>
+	</delete>
+
+</mapper>

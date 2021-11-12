@@ -1,0 +1,14 @@
+html{font-size:20px}body{min-width:320px;min-width:16rem;font-size:12px;line-height:24px}
+.foot,.login_footer,.m_right,.main-wrapper,.t_header,.width1200{min-width:320px;width:100%;margin:0}
+.m_left{display:none}.t_h_logo{width:20%;height:3rem;background-size:3rem 2rem;background-position:0 16px}
+.t_h_logo a.home{width:100%;height:3rem}.t_header h2 a.home{width:240px}
+.t_header h2{width:76%;background-size:12rem .78rem;background-position:0 7px;height:2rem;padding-top:0}
+.h_right{float:left;padding-top:0;padding-left:1rem;width:284px}.top_right{text-align:left;color:#333}
+.logo_text{display:none}.m_r_bottom .ma{float:none;margin:20px auto}.m_right{padding-top:.7rem}
+.m_right h3{padding-left:1rem;font-size:1.2rem}.m_right p{padding-left:1rem;font-size:.9rem}
+.andriad .and_bom,.andriad .and_top{padding-left:0}
+.m_r_bottom a.andriad{float:none;display:block;margin:0 auto;padding-right:0}
+.ios .and_bom,.ios .and_top{padding-left:0}
+.m_r_bottom a.ios{float:none;display:block;margin:0 auto;padding-right:0}
+.main-wrapper{height:530px}.footer_cxt{display:none}
+.m_r_bottom .ma {margin-top: 2px;}

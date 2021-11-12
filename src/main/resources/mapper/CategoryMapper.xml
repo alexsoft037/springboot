@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.dao.CategoryDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.entity.Category" id="bookCategoryMap">
+        <result property="categoryId" column="category_id"/>
+        <result property="categoryName" column="category_name"/>
+        <result property="categoryCode" column="category_code"/>
+		<result property="categoryIcon" column="category_icon"/>
+        <result property="upperCode" column="upper_code"/>
+		<result property="upperName" column="upper_name"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateAt" column="update_at"/>
+        <result property="updateBy" column="update_by"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.entity.Category">
+		select * from category where category_id = #{value}
+	</select>
+
+	<select id="getCodeValues" resultType="xin.xiaoer.entity.CodeValue">
+		select cat.category_code AS `code`,
+			cat.category_name AS `value`,
+			icon.url AS `icon`
+		FROM category cat
+		LEFT JOIN (SELECT * FROM sys_file GROUP BY upload_id) icon
+		ON cat.category_icon = icon.upload_id
+		WHERE cat.upper_code = #{upperCode}
+		<if test="state != null and state != ''"> and cat.state = #{state} </if>
+		ORDER BY cat.category_code ASC
+	</select>
+
+	<select id="getByCategoryCode" resultType="xin.xiaoer.entity.Category">
+		select * from category where category_code = #{value} LIMIT 1
+	</select>
+
+	<select id="getListByUpperCode" resultType="xin.xiaoer.entity.Category">
+		select t.category_id,
+			t.category_name,
+			t.category_code,
+			t.upper_code,
+			t.state,
+			t.create_at,
+			t.create_by,
+			t.update_at,
+			t.update_by,
+			file.url AS category_icon
+		from category t
+		LEFT JOIN sys_file file
+		ON t.category_icon = file.upload_id
+		WHERE 1 = 1
+		AND t.state = '1'
+		<if test="upperCode != null and upperCode != ''"> and t.upper_code = #{upperCode} </if>
+	</select>
+
+	<sql id="Field">
+		t.category_id,
+		t.category_name,
+		t.category_code,
+		t.upper_code,
+		t.upper_name,
+		t.state,
+		t.create_at,
+		t.create_by,
+		t.update_at,
+		t.update_by
+	</sql>
+
+	<select id="getList" resultType="xin.xiaoer.entity.Category">
+		select <include refid="Field" />, icon.url AS category_icon from (SELECT cat.*,
+			upCat.category_name AS upper_name
+			FROM category cat
+			LEFT JOIN category upCat
+			ON cat.upper_code = upCat.category_code) t
+		LEFT JOIN sys_file icon
+		ON t.category_icon = icon.upload_id
+		<include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by category_code ASC
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(t.category_id) from (SELECT cat.*,
+			upCat.category_name AS upper_name
+		FROM category cat
+		LEFT JOIN category upCat
+		ON cat.upper_code = upCat.category_code) t
+		<include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="categoryId != null and categoryId != ''"> and t.category_id = #{categoryId} </if>
+    		<if test="categoryIdVague != null and categoryIdVague != ''"> and t.category_id like concat('%',#{categoryIdVague},'%') </if>
+            <if test="categoryName != null and categoryName != ''"> and t.category_name = #{categoryName} </if>
+    		<if test="categoryNameVague != null and categoryNameVague != ''"> and t.category_name like concat('%',#{categoryNameVague},'%') </if>
+            <if test="categoryCode != null and categoryCode != ''"> and t.category_code = #{categoryCode} </if>
+			<if test="categoryCodeNotLike != null and categoryCodeNotLike != ''"> and t.category_code NOT LIKE #{categoryCodeNotLike} </if>
+    		<if test="categoryCodeVague != null and categoryCodeVague != ''"> and t.category_code like concat('%',#{categoryCodeVague},'%') </if>
+            <if test="upperCode != null and upperCode != ''"> and t.upper_code = #{upperCode} </if>
+    		<if test="upperCodeVague != null and upperCodeVague != ''"> and t.upper_code like concat('%',#{upperCodeVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+    		<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+            <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+    		<if test="createByVague != null and createByVague != ''"> and t.create_by like concat('%',#{createByVague},'%') </if>
+            <if test="updateAt != null and updateAt != ''"> and t.update_at = #{updateAt} </if>
+    		<if test="updateAtVague != null and updateAtVague != ''"> and t.update_at like concat('%',#{updateAtVague},'%') </if>
+            <if test="updateBy != null and updateBy != ''"> and t.update_by = #{updateBy} </if>
+    		<if test="updateByVague != null and updateByVague != ''"> and t.update_by like concat('%',#{updateByVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.entity.Category" useGeneratedKeys="true" keyProperty="categoryId">
+		insert into category
+		(
+			`category_name`, 
+			`category_code`,
+			`category_icon`,
+			`upper_code`, 
+			`state`, 
+			`create_at`, 
+			`create_by`, 
+			`update_at`, 
+			`update_by`
+		)
+		values
+		(
+			#{categoryName}, 
+			#{categoryCode},
+			#{categoryIcon},
+			#{upperCode}, 
+			#{state}, 
+			NOW(),
+			#{createBy}, 
+			NOW(),
+			#{updateBy}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.entity.Category">
+		update category 
+		<set>
+			<if test="categoryName != null">`category_name` = #{categoryName}, </if>
+			<if test="categoryCode != null">`category_code` = #{categoryCode}, </if>
+			<if test="categoryIcon != null">`category_icon` = #{categoryIcon}, </if>
+			<if test="upperCode != null">`upper_code` = #{upperCode}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy},</if>
+			`update_at` = NOW()
+		</set>
+		where category_id = #{categoryId}
+	</update>
+
+	<update id="removeUpperCode">
+		update category
+		<set>
+			`upper_code` = NULL,
+			`update_at` = NOW()
+		</set>
+		where upper_code = #{upperCode}
+	</update>
+	
+	<delete id="delete">
+		delete from category where category_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from category where category_id in 
+		<foreach item="categoryId" collection="array" open="(" separator="," close=")">
+			#{categoryId}
+		</foreach>
+	</delete>
+
+	<select id="findByVerify" resultType="xin.xiaoer.entity.Category">
+		select * from category where category_code = #{categoryCode}
+	</select>
+
+</mapper>

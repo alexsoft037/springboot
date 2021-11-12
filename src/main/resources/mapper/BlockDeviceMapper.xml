@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.dao.BlockDeviceDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.entity.BlockDevice" id="blockDeviceMap">
+        <result property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="deviceId" column="device_id"/>
+        <result property="updateAt" column="update_at"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.entity.BlockDevice">
+		select * from block_device where id = #{value}
+	</select>
+
+	<select id="getByUserAndDevice" resultType="xin.xiaoer.entity.BlockDevice">
+		select * from block_device where user_id = #{userId} and device_id = #{deviceId} limit 1
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.entity.BlockDevice">
+		select * from block_device t <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from block_device t  <include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="id != null and id != ''"> and t.id = #{id} </if>
+    		<if test="idVague != null and idVague != ''"> and t.id like concat('%',#{idVague},'%') </if>
+            <if test="userId != null and userId != ''"> and t.user_id = #{userId} </if>
+    		<if test="userIdVague != null and userIdVague != ''"> and t.user_id like concat('%',#{userIdVague},'%') </if>
+            <if test="deviceId != null and deviceId != ''"> and t.device_id = #{deviceId} </if>
+    		<if test="deviceIdVague != null and deviceIdVague != ''"> and t.device_id like concat('%',#{deviceIdVague},'%') </if>
+            <if test="updateAt != null and updateAt != ''"> and t.update_at = #{updateAt} </if>
+    		<if test="updateAtVague != null and updateAtVague != ''"> and t.update_at like concat('%',#{updateAtVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.entity.BlockDevice" useGeneratedKeys="true" keyProperty="id">
+		insert into block_device
+		(
+			`user_id`, 
+			`device_id`, 
+			`update_at`
+		)
+		values
+		(
+			#{userId}, 
+			#{deviceId}, 
+			NOW()
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.entity.BlockDevice">
+		update block_device 
+		<set>
+			<if test="userId != null">`user_id` = #{userId}, </if>
+			<if test="deviceId != null">`device_id` = #{deviceId}, </if>
+			`update_at` = #{updateAt}
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from block_device where id = #{value}
+	</delete>
+
+	<delete id="deleteByUserAndDevice">
+		delete from block_device where user_id= #{userId} and device_id = #{deviceId}
+	</delete>
+
+	<delete id="deleteBatch">
+		delete from block_device where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

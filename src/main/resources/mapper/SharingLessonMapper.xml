@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.classroom.dao.SharingLessonDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.classroom.entity.SharingLesson" id="sharingLessonMap">
+        <result property="lessonId" column="lesson_id"/>
+        <result property="title" column="title"/>
+        <result property="spaceId" column="space_id"/>
+        <result property="introduction" column="introduction"/>
+        <result property="categoryCode" column="category_code"/>
+        <result property="categoryName" column="category_name"/>
+        <result property="featuredImage" column="featured_image"/>
+        <result property="videoFile" column="video_file"/>
+        <result property="weight" column="weight"/>
+        <result property="featuredYn" column="featured_yn"/>
+        <result property="readCount" column="read_count"/>
+        <result property="playCount" column="play_count"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createUser" column="create_user"/>
+        <result property="updateAt" column="update_at"/>
+        <result property="updateBy" column="update_by"/>
+    </resultMap>
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.mobile.entity.VideoLessonListItem" id="videoLessonListItemMap">
+        <result property="lessonId" column="lesson_id"/>
+        <result property="title" column="title"/>
+        <result property="spaceId" column="space_id"/>
+        <result property="categoryCode" column="category_code"/>
+        <result property="featuredImage" column="featured_image"/>
+        <result property="weight" column="weight"/>
+        <result property="featuredYn" column="featured_yn"/>
+        <result property="readCount" column="read_count"/>
+        <result property="playCount" column="play_count"/>
+        <result property="state" column="state"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createUser" column="create_user"/>
+    </resultMap>
+
+    <sql id="field">
+	sl.lesson_id,
+	sl.title,
+	sl.space_id,
+	sl.introduction,
+	sl.category_code,
+	sl.video_file,
+	sl.weight,
+	sl.featured_yn,
+	sl.read_count,
+	sl.play_count,
+	sl.state,
+	sl.create_at,
+	sl.create_by,
+	sl.update_at,
+	sl.update_by
+</sql>
+
+    <select id="get" resultType="xin.xiaoer.modules.classroom.entity.SharingLesson">
+	select sl.*,
+	cat.category_name AS category_name
+	from sharing_lesson sl, category cat
+	where sl.lesson_id = #{value}
+	and sl.category_code = cat.category_code
+	limit 1
+</select>
+
+    <select id="getDetail" resultType="xin.xiaoer.modules.classroom.entity.SharingLesson">
+        select <include refid="field" />,
+        sfile.url AS featured_image,
+        sl.category_name
+        from (select sl.*,
+        cat.category_name AS category_name
+        from sharing_lesson sl, category cat
+        where sl.lesson_id = #{value}
+        and sl.category_code = cat.category_code) as sl
+        LEFT JOIN (select * from sys_file group by upload_id) sfile
+        ON sfile.upload_id = sl.featured_image
+    </select>
+
+    <select id="getListItemObject" resultType="xin.xiaoer.modules.mobile.entity.VideoLessonListItem">
+        select * from (SELECT <include refid="field" />,
+        file.url AS featured_image
+        FROM sharing_lesson sl
+        LEFT JOIN sys_file file
+        ON file.upload_id = sl.featured_image) t
+        where t.lesson_id = #{lessonId}
+        and t.state = '1'
+    </select>
+
+    <select id="getshareList" resultType="Map">
+		SELECT t.*,sf.url
+		FROM
+		(SELECT sl.* FROM
+				sharing_lesson sl
+				LEFT JOIN `share` sh
+				ON sl.lesson_id = sh.article_id
+				WHERE sh.user_id = #{userId}) t
+		LEFT JOIN sys_file sf
+		ON t.featured_image = sf.upload_id
+        <if test="offset !=null and limit !=null">
+            limit #{offset},#{limit}
+        </if>
+	</select>
+
+    <select id="getshareCount" resultType="int">
+		SELECT COUNT(s.share_id)
+		FROM `share` s
+		WHERE s.user_id = #{userId}
+	</select>
+
+    <select id="getFeaturedList" resultType="xin.xiaoer.modules.mobile.entity.VideoLessonListItem">
+        select * from (SELECT <include refid="field" />,
+        file.url AS featured_image,
+        upper_code,
+        sl.create_user,
+        sl.rlrCount,
+        file1.url as avatar
+        FROM (select sl.*,
+        su.nickname as create_user,
+        su.avatar
+        from (select sl.*,
+        (if(review.review_count, review.review_count, 0) + if(cLike.like_count, cLike.like_count, 0) + if(sl.read_count, sl.read_count, 0)) as rlrCount
+        from (SELECT sl.*,cat.upper_code
+        from sharing_lesson sl
+        LEFT JOIN category cat
+        ON sl.category_code = cat.category_code) sl
+        left join (select count(*) as review_count,
+        article_id
+        from review where article_type_code = 'AT0008' group by article_id) as review
+        on review.article_id = sl.lesson_id
+        left join (select count(*) as like_count,
+        article_id
+        from `like` where article_type_code = 'AT0008' group by article_id) as cLike
+        on cLike.article_id = sl.lesson_id) sl, sys_user su
+        where sl.create_by = su.user_id) sl
+        LEFT JOIN sys_file file
+        ON file.upload_id = sl.featured_image
+        left join sys_file file1
+        on file1.upload_id = sl.avatar) t
+        <include refid="where_clause" />
+        order by t.rlrCount desc, t.create_at desc
+        <if test="limit != null and limit != ''">
+            limit ${limit}
+        </if>
+    </select>
+
+    <select id="getApiListDataByUser" resultType="xin.xiaoer.modules.mobile.entity.VideoLessonListItem">
+        select * from (SELECT <include refid="field" />,
+        file.url AS featured_image,
+        sl.create_user,
+        sl.user_update,
+        file1.url as avatar
+        FROM (select sl.*,
+        ul.update_at as user_update,
+        su.nickname as create_user,
+        su.avatar
+        from sharing_lesson sl, user_lesson ul, sys_user su
+        where sl.lesson_id = ul.lesson_id
+        and su.user_id = sl.create_by
+        and ul.user_id = #{userId}) sl
+        LEFT JOIN sys_file file
+        ON file.upload_id = sl.featured_image
+        left join sys_file file1
+        on file1.upload_id = sl.avatar) t
+        <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <when test="sort == 'desc'">
+                order by user_update desc
+            </when>
+            <when test="sort == 'asc'">
+                order by user_update asc
+            </when>
+            <otherwise>
+                order by lesson_id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="getApiCountByUser" resultType="int">
+        select count(*) from (SELECT <include refid="field" />,
+        file.url AS featured_image,
+        sl.create_user,
+        file1.url as avatar
+        FROM (select sl.*,
+        su.nickname as create_user,
+        su.avatar
+        from sharing_lesson sl, user_lesson ul, sys_user su
+        where sl.lesson_id = ul.lesson_id
+        and su.user_id = sl.create_by
+        and ul.user_id = #{userId}) sl
+        LEFT JOIN sys_file file
+        ON file.upload_id = sl.featured_image
+        left join sys_file file1
+        on file1.upload_id = sl.avatar) t  <include refid="where_clause" />
+    </select>
+
+    <select id="getApiListData" resultType="xin.xiaoer.modules.mobile.entity.VideoLessonListItem">
+        select * from (SELECT <include refid="field" />,
+        file.url AS featured_image,
+        sl.create_user,
+        file1.url as avatar
+        FROM (select sl.*,
+        su.nickname as create_user,
+        su.avatar
+        from sharing_lesson sl, sys_user su
+        where sl.create_by = su.user_id) sl
+        LEFT JOIN sys_file file
+        ON file.upload_id = sl.featured_image
+        left join sys_file file1
+        on file1.upload_id = sl.avatar) t
+        left join category cat
+        on cat.category_code = t.category_code
+        where 1 = 1
+        <if test="categoryCode != null and categoryCode != ''">
+            and (t.category_code = #{categoryCode} or cat.upper_code = #{categoryCode})
+        </if>
+        <if test="createBy !=null and createBy != ''">
+            and t.create_by=#{createBy}
+        </if>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <when test="sort == 'desc'">
+                order by t.update_at desc
+            </when>
+            <when test="sort == 'asc'">
+                order by t.update_at asc
+            </when>
+            <otherwise>
+                order by lesson_id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="getApiCount" resultType="int">
+        select count(*) from (SELECT <include refid="field" />,
+        file.url AS featured_image,
+        sl.create_user,
+        file1.url as avatar
+        FROM (select sl.*,
+        su.nickname as create_user,
+        su.avatar
+        from sharing_lesson sl, sys_user su
+        where sl.create_by = su.user_id) sl
+        LEFT JOIN sys_file file
+        ON file.upload_id = sl.featured_image
+        left join sys_file file1
+        on file1.upload_id = sl.avatar) t
+        left join category cat
+        on cat.category_code = t.category_code
+        where 1 = 1
+        <if test="categoryCode != null and categoryCode != ''">
+            and (t.category_code = #{categoryCode} or cat.upper_code = #{categoryCode})
+        </if>
+    </select>
+
+    <select id="getList" resultType="xin.xiaoer.modules.classroom.entity.SharingLesson">
+        select * from (SELECT t.*, cat.category_name as category_name
+        FROM (SELECT <include refid="field" />,
+        file.url AS featured_image,
+        sp.space_name
+        FROM sharing_lesson sl
+        left join space sp
+        on sp.space_id = sl.space_id
+        LEFT JOIN sys_file file
+        ON file.upload_id = sl.featured_image) t, category cat
+        WHERE t.category_code = cat.category_code) t
+        <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by lesson_id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="getCount" resultType="int">
+        select count(*)
+        from (SELECT t.*, cat.category_name as category_name
+        FROM (SELECT <include refid="field" />,
+        file.url AS featured_image
+        FROM sharing_lesson sl
+        LEFT JOIN sys_file file
+        ON file.upload_id = sl.featured_image) t, category cat
+        WHERE t.category_code = cat.category_code) t
+        <include refid="where_clause" />
+    </select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="lessonId != null and lessonId != ''"> and t.lesson_id = #{lessonId} </if>
+            <if test="lessonIdVague != null and lessonIdVague != ''"> and t.lesson_id like concat('%',#{lessonIdVague},'%') </if>
+            <if test="title != null and title != ''"> and t.title = #{title} </if>
+            <if test="titleVague != null and titleVague != ''"> and t.title like concat('%',#{titleVague},'%') </if>
+            <if test="introduction != null and introduction != ''"> and t.introduction = #{introduction} </if>
+            <if test="introductionVague != null and introductionVague != ''"> and t.introduction like concat('%',#{introductionVague},'%') </if>
+            <if test="categoryCode != null and categoryCode != ''"> and t.category_code = #{categoryCode} </if>
+            <if test="categoryCodeVague != null and categoryCodeVague != ''"> and t.category_code like concat('%',#{categoryCodeVague},'%') </if>
+            <if test="featuredImage != null and featuredImage != ''"> and t.featured_image = #{featuredImage} </if>
+            <if test="featuredImageVague != null and featuredImageVague != ''"> and t.featured_image like concat('%',#{featuredImageVague},'%') </if>
+            <if test="videoFile != null and videoFile != ''"> and t.video_file = #{videoFile} </if>
+            <if test="videoFileVague != null and videoFileVague != ''"> and t.video_file like concat('%',#{videoFileVague},'%') </if>
+            <if test="weight != null and weight != ''"> and t.weight = #{weight} </if>
+            <if test="weightVague != null and weightVague != ''"> and t.weight like concat('%',#{weightVague},'%') </if>
+            <if test="featuredYn != null and featuredYn != ''"> and t.featured_yn = #{featuredYn} </if>
+            <if test="featuredYnVague != null and featuredYnVague != ''"> and t.featured_yn like concat('%',#{featuredYnVague},'%') </if>
+            <if test="readCount != null and readCount != ''"> and t.read_count = #{readCount} </if>
+            <if test="readCountVague != null and readCountVague != ''"> and t.read_count like concat('%',#{readCountVague},'%') </if>
+            <if test="playCount != null and playCount != ''"> and t.play_count = #{playCount} </if>
+            <if test="playCountVague != null and playCountVague != ''"> and t.play_count like concat('%',#{playCountVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+            <if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+            <if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+            <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+            <if test="createByVague != null and createByVague != ''"> and t.create_by like concat('%',#{createByVague},'%') </if>
+            <if test="updateAt != null and updateAt != ''"> and t.update_at = #{updateAt} </if>
+            <if test="updateAtVague != null and updateAtVague != ''"> and t.update_at like concat('%',#{updateAtVague},'%') </if>
+            <if test="updateBy != null and updateBy != ''"> and t.update_by = #{updateBy} </if>
+            <if test="updateByVague != null and updateByVague != ''"> and t.update_by like concat('%',#{updateByVague},'%') </if>
+
+            <if test="period !=null and period != '' ">and date_sub(CURDATE(), INTERVAL #{period} DAY) &lt;= DATE(t.create_at)</if>
+            <if test="upperCode != null and upperCode != ''"> and t.upper_code= #{upperCode} </if>
+        </where>
+    </sql>
+
+    <insert id="save" parameterType="xin.xiaoer.modules.classroom.entity.SharingLesson" useGeneratedKeys="true" keyProperty="lessonId">
+	insert into sharing_lesson
+	(
+	`title`,
+	`space_id`,
+	`introduction`,
+	`category_code`,
+	`featured_image`,
+	`video_file`,
+	`weight`,
+	`featured_yn`,
+	`read_count`,
+	`play_count`,
+	`state`,
+	`create_at`,
+	`create_by`,
+	`update_at`,
+	`update_by`
+	)
+	values
+	(
+	#{title},
+	#{spaceId},
+	#{introduction},
+	#{categoryCode},
+	#{featuredImage},
+	#{videoFile},
+	#{weight},
+	#{featuredYn},
+	#{readCount},
+	#{playCount},
+	#{state},
+	NOW(),
+	#{createBy},
+	NOW(),
+	#{updateBy}
+	)
+</insert>
+
+    <update id="update" parameterType="xin.xiaoer.modules.classroom.entity.SharingLesson">
+        update sharing_lesson
+        <set>
+            <if test="title != null">`title` = #{title}, </if>
+            <if test="spaceId != null">`space_id` = #{spaceId}, </if>
+            <if test="introduction != null">`introduction` = #{introduction}, </if>
+            <if test="categoryCode != null">`category_code` = #{categoryCode}, </if>
+            <if test="featuredImage != null">`featured_image` = #{featuredImage}, </if>
+            <if test="videoFile != null">`video_file` = #{videoFile}, </if>
+            <if test="weight != null">`weight` = #{weight}, </if>
+            <if test="featuredYn != null">`featured_yn` = #{featuredYn}, </if>
+            <if test="readCount != null and readCount != 0">`read_count` = #{readCount}, </if>
+            <if test="playCount != null and playCount != 0">`play_count` = #{playCount}, </if>
+            <if test="state != null">`state` = #{state}, </if>
+            <if test="updateBy != null">`update_by` = #{updateBy}, </if>
+            `update_at` = NOW()
+        </set>
+        where lesson_id = #{lessonId}
+    </update>
+
+    <update id="removeCategoryCode">
+        update sharing_lesson
+        <set>
+            `category_code` = #{categoryCode},
+            `update_at` = NOW()
+        </set>
+        where category_code = #{categoryCode}
+    </update>
+
+    <delete id="delete">
+	delete from sharing_lesson where lesson_id = #{value}
+</delete>
+
+    <delete id="deleteBatch">
+        delete from sharing_lesson where lesson_id in
+        <foreach item="lessonId" collection="array" open="(" separator="," close=")">
+            #{lessonId}
+        </foreach>
+    </delete>
+
+</mapper>

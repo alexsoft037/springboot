@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.comment.dao.CommentDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.comment.entity.Comment" id="commentMap">
+        <result property="commentId" column="comment_id"/>
+        <result property="userId" column="user_id"/>
+		<result property="userName" column="user_name"/>
+		<result property="avatar" column="avatar"/>
+        <result property="articleId" column="article_id"/>
+        <result property="content" column="content"/>
+        <result property="articleTypeCode" column="article_type_code"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateAt" column="update_at"/>
+        <result property="updateBy" column="update_by"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.comment.entity.Comment">
+		select t.*,
+			us.nickname AS user_name,
+			us.avatar as avatar
+		from comment t, sys_user us
+		where t.comment_id = #{value}
+		AND t.user_id = us.user_id
+	</select>
+
+	<select id="getByArticleAndUser" resultType="xin.xiaoer.modules.comment.entity.Comment">
+		select * from comment where article_id = #{articleId} AND article_type_code = #{articleType} AND user_id = #{userId} limit 1
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.comment.entity.Comment">
+		select t.*,
+			us.nickname as user_name,
+			us.avatar as avatar
+		from comment t, sys_user us <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by t.${sidx} ${order}
+            </when>
+			<otherwise>
+                order by t.comment_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from comment t, sys_user us <include refid="where_clause" />
+	</select>
+
+	<select id="getCountByCodeAndId" resultType="int">
+		select count(*) from comment t
+		where t.article_type_code = #{articleType}
+		AND t.article_id = #{articleId}
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+			AND t.user_id = us.user_id
+            <if test="commentId != null and commentId != ''"> and t.comment_id = #{commentId} </if>
+    		<if test="commentIdVague != null and commentIdVague != ''"> and t.comment_id like concat('%',#{commentIdVague},'%') </if>
+            <if test="userId != null and userId != ''"> and t.user_id = #{userId} </if>
+    		<if test="userIdVague != null and userIdVague != ''"> and t.user_id like concat('%',#{userIdVague},'%') </if>
+            <if test="articleId != null and articleId != ''"> and t.article_id = #{articleId} </if>
+    		<if test="articleIdVague != null and articleIdVague != ''"> and t.article_id like concat('%',#{articleIdVague},'%') </if>
+            <if test="content != null and content != ''"> and t.content = #{content} </if>
+    		<if test="contentVague != null and contentVague != ''"> and t.content like concat('%',#{contentVague},'%') </if>
+            <if test="articleTypeCode != null and articleTypeCode != ''"> and t.article_type_code = #{articleTypeCode} </if>
+    		<if test="articleTypeCodeVague != null and articleTypeCodeVague != ''"> and t.article_type_code like concat('%',#{articleTypeCodeVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+    		<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+            <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+    		<if test="createByVague != null and createByVague != ''"> and t.create_by like concat('%',#{createByVague},'%') </if>
+            <if test="updateAt != null and updateAt != ''"> and t.update_at = #{updateAt} </if>
+    		<if test="updateAtVague != null and updateAtVague != ''"> and t.update_at like concat('%',#{updateAtVague},'%') </if>
+            <if test="updateBy != null and updateBy != ''"> and t.update_by = #{updateBy} </if>
+    		<if test="updateByVague != null and updateByVague != ''"> and t.update_by like concat('%',#{updateByVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.comment.entity.Comment" useGeneratedKeys="true" keyProperty="commentId">
+		insert into comment
+		(
+			`user_id`, 
+			`article_id`, 
+			`content`, 
+			`article_type_code`, 
+			`state`, 
+			`create_at`, 
+			`create_by`, 
+			`update_at`, 
+			`update_by`
+		)
+		values
+		(
+			#{userId}, 
+			#{articleId}, 
+			#{content}, 
+			#{articleTypeCode}, 
+			#{state}, 
+			DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S'),
+			#{createBy}, 
+			DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S'),
+			#{updateBy}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.comment.entity.Comment">
+		update comment 
+		<set>
+			<if test="userId != null">`user_id` = #{userId}, </if>
+			<if test="articleId != null">`article_id` = #{articleId}, </if>
+			<if test="content != null">`content` = #{content}, </if>
+			<if test="articleTypeCode != null">`article_type_code` = #{articleTypeCode}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy},</if>
+			`update_at` = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S')
+		</set>
+		where comment_id = #{commentId}
+	</update>
+	
+	<delete id="delete">
+		delete from comment where comment_id = #{value}
+	</delete>
+
+	<delete id="deleteByArticle">
+		delete from comment where article_id = #{articleId} AND article_type_code = #{articleType}
+	</delete>
+
+	<delete id="deleteByArticleAndUser">
+		delete from comment where article_id = #{articleId} AND article_type_code = #{articleType} AND user_id = #{userId}
+	</delete>
+
+	<delete id="deleteBatch">
+		delete from comment where comment_id in 
+		<foreach item="commentId" collection="array" open="(" separator="," close=")">
+			#{commentId}
+		</foreach>
+	</delete>
+
+</mapper>

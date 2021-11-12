@@ -1,0 +1,874 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.activity.dao.ActivityDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+	<resultMap type="xin.xiaoer.modules.activity.entity.Activity" id="activityMap">
+		<result property="activityId" column="activity_id"/>
+		<result property="spaceId" column="space_id"/>
+		<result property="activityTypeCode" column="activity_type_code"/>
+		<result property="activityType" column="activity_type"/>
+		<result property="title" column="title"/>
+		<result property="content" column="content"/>
+		<result property="featuredImage" column="featured_image"/>
+		<result property="periodFrom" column="period_from"/>
+		<result property="periodTo" column="period_to"/>
+		<result property="registerEnd" column="register_end"/>
+		<result property="activityStatusCode" column="activity_status_code"/>
+		<result property="activityStatus" column="activity_status"/>
+		<result property="numberOfPeople" column="number_of_people"/>
+		<result property="contactName" column="contact_name"/>
+		<result property="contactPhone" column="contact_phone"/>
+		<result property="readCount" column="read_count"/>
+		<result property="location" column="location"/>
+		<result property="district" column="district"/>
+		<result property="city" column="city"/>
+		<result property="province" column="province"/>
+		<result property="street" column="street"/>
+		<result property="streetNumber" column="street_number"/>
+		<result property="latitude" column="latitude"/>
+		<result property="longitude" column="longitude"/>
+		<result property="weight" column="weight"/>
+		<result property="integral" column="integral"/>
+		<result property="featuredYn" column="featured_yn"/>
+		<result property="state" column="state"/>
+		<result property="createAt" column="create_at"/>
+		<result property="createBy" column="create_by"/>
+		<result property="updateAt" column="update_at"/>
+		<result property="updateBy" column="update_by"/>
+	</resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.activity.entity.Activity">
+		SELECT t.*,
+		avType.para_name AS activity_type,
+		avStatus.para_name AS activity_status
+		FROM activity t, sys_commpara avType, sys_commpara avStatus
+		WHERE activity_id = #{value}
+		AND t.activity_type_code = avType.para_key
+		AND t.activity_status_code = avStatus.para_key
+	</select>
+
+
+	<select id="getActivityAppraisalDetail" resultType="Map">
+		select * from activity_appraisal where appraisal_id = #{appraisalId}
+	</select>
+
+
+	<sql id="field">
+		t.activity_id,
+		t.space_id,
+		t.activity_type_code,
+		t.title,
+		t.content,
+		t.period_from,
+		t.period_to,
+		t.register_end,
+		t.activity_status_code,
+		t.number_of_people,
+		t.contact_name,
+		t.contact_phone,
+		t.read_count,
+		t.location,
+		t.district,
+		t.city,
+		t.province,
+		t.street,
+		t.street_number,
+		t.latitude,
+		t.longitude,
+		t.weight,
+		t.integral,
+		t.featured_yn,
+		t.state,
+		t.create_at,
+		t.create_by,
+		t.update_at,
+		t.update_by,
+	</sql>
+
+	<select id="getDetail" resultType="xin.xiaoer.modules.activity.entity.Activity">
+		select <include refid="field" />,
+		t.activity_type,
+		t.activity_status,
+		sfile.url as featured_image
+		from (SELECT t.*,
+		avType.para_name AS activity_type,
+		avStatus.para_name AS activity_status
+		FROM activity t, sys_commpara avType, sys_commpara avStatus
+		WHERE activity_id = #{value}
+		AND t.activity_type_code = avType.para_key
+		AND t.activity_status_code = avStatus.para_key) as t
+		left join (select * from sys_file group by upload_id) sfile
+		on sfile.upload_id = t.featured_image
+	</select>
+
+	<select id="getreviewList" resultType="Map">
+		SELECT
+		ac.*, r.*, IFNULL(l.like_count, 0) AS like_count
+		FROM
+		activity ac
+		LEFT JOIN review re ON re.article_id = ac.activity_id
+		LEFT JOIN (
+		SELECT
+		l.article_id,
+		COUNT(*) AS like_count
+		FROM
+		`like` l
+		WHERE
+		l.article_type_code = 'AT0004'
+		GROUP BY
+		l.article_id
+		) l ON l.article_id = ac.activity_id
+		LEFT JOIN (
+		SELECT
+		r.article_id,
+		r.create_at AS review_at,
+		COUNT(*) AS review_count
+		FROM
+		review r
+		WHERE
+		r.article_type_code = 'AT0004'
+		GROUP BY
+		r.article_id
+		) r ON r.article_id = ac.activity_id
+		WHERE
+		re.article_type_code = 'AT0004'
+		AND re.user_id = #{userId}
+		GROUP BY
+		ac.activity_id
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by ${sidx} ${order}
+			</when>
+			<when test="sort == 'desc'">
+				order by review_at desc
+			</when>
+			<when test="sort == 'asc'">
+				order by review_at asc
+			</when>
+		</choose>
+		<if test="offset !=null and limit !=null">
+			limit #{offset},#{limit}
+		</if>
+	</select>
+
+	<select id="getreviewcount" resultType="int">
+		SELECT COUNT(aa.activity_id)
+		FROM
+		(SELECT ac.*,COUNT(re.user_id) AS countreview
+		FROM activity ac
+		LEFT JOIN review re
+		ON ac.activity_id = re.article_id
+		WHERE re.user_id = #{userId}
+		AND re.article_type_code = 'AT0004'
+		GROUP BY ac.activity_id
+		ORDER BY ac.create_at DESC) aa
+	</select>
+
+	<select id="getlikeList" resultType="Map">
+		SELECT
+		av.*,l.*,IFNULL(r.review_count,0)  AS review_count
+		FROM
+		activity av
+		LEFT JOIN `like` lk ON lk.article_id = av.activity_id
+		LEFT JOIN (
+		SELECT
+		l.article_id,l.create_at AS like_at,
+		COUNT(*) AS like_count
+		FROM
+		`like` l
+		WHERE l.article_type_code = 'AT0004'
+		GROUP BY
+		l.article_id
+		) l ON l.article_id = av.activity_id
+		LEFT JOIN (
+		SELECT
+		r.article_id,r.article_type_code,
+		COUNT(*) AS review_count
+		FROM
+		review r
+		WHERE r.article_type_code = 'AT0004'
+		GROUP BY
+		r.article_id
+		) r ON r.article_id = av.activity_id
+		WHERE
+		lk.article_type_code = 'AT0004'
+		AND lk.user_id =#{userId}
+		GROUP BY av.activity_id
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by ${sidx} ${order}
+			</when>
+			<when test="sort == 'desc'">
+				order by like_at desc
+			</when>
+			<when test="sort == 'asc'">
+				order by like_at asc
+			</when>
+		</choose>
+		<if test="offset !=null and limit !=null">
+			limit #{offset},#{limit}
+		</if>
+	</select>
+
+	<select id="getlikeCount" resultType="int">
+		SELECT COUNT(aa.activity_id)
+		FROM
+		(SELECT ac.*,COUNT(`like`.user_id) AS countreview
+		FROM activity ac
+		LEFT JOIN `like`
+		ON activity_id = `like`.article_id
+		WHERE `like`.user_id = #{userId}
+		AND `like`.article_type_code = 'AT0004'
+		GROUP BY ac.activity_id) aa
+	</select>
+
+
+	<select id="getHotActivity" resultType="Map">
+		SELECT
+			a.activity_id as activityId,
+			a.title,
+			a.space_id as spaceId,
+			a.activity_type_code as activityTypeCode,
+			a.activity_status_code as activityStatusCode,
+			IFNULL(a.totalUsers, 0) AS totalUsers,
+			a.number_of_people numberOfPeople,
+			a.register_end as registerEnd,
+			a.featuredImage,
+			a.create_at as createAt,
+			`type`.para_name as activityType,
+			`code`.para_name as activityStatus
+		FROM
+			(
+				SELECT
+					a.*, aa.totalUsers,
+					sf.url AS featuredImage
+				FROM
+					activity a
+				LEFT JOIN (
+					SELECT
+						aa.activity_id,
+						COUNT(*) AS totalUsers
+					FROM
+						activity_attend aa
+					GROUP BY
+						aa.activity_id
+				) aa ON a.activity_id = aa.activity_id
+				LEFT JOIN sys_file sf ON a.featured_image = sf.upload_id
+			) a,
+			sys_commpara `type`,
+			sys_commpara CODE
+		WHERE
+			`type`.para_key = a.activity_type_code
+		AND `code`.para_key = a.activity_status_code
+		AND a.state = '1'
+		<if test="spaceId != null and spaceId != ''">
+			AND a.space_id = #{spaceId}
+		</if>
+		ORDER BY
+			a.activity_status_code,
+			a.totalUsers DESC,
+			a.create_at DESC
+	</select>
+
+	<select id="gethotacCount" resultType="int">
+		SELECT
+		COUNT(t.activity_id)
+		FROM
+		(
+		SELECT
+		av.*
+		FROM
+		activity av
+		LEFT JOIN activity_attend aa ON av.activity_id = aa.activity_id
+		WHERE
+		av.featured_yn = 'Y'
+		GROUP BY
+		av.activity_id
+		) t
+	</select>
+
+	<select id="getActivityAppraisal" resultType="Map">
+			SELECT sp.space_name,sf.url,aa.*
+			FROM activity_appraisal aa
+			LEFT JOIN space sp
+			ON aa.space_id = sp.space_id
+			LEFT JOIN sys_file sf
+			ON aa.featured_image = sf.upload_id
+            <if test="offset !=null and limit !=null">
+                limit #{offset},#{limit}
+            </if>
+	</select>
+
+    <select id="getappraisalCount" resultType="int">
+            SELECT COUNT(aa.appraisal_id)
+			FROM activity_appraisal aa
+			LEFT JOIN space sp
+			ON aa.space_id = sp.space_id
+			LEFT JOIN sys_file sf
+			ON aa.featured_image = sf.upload_id
+    </select>
+
+
+	<select id="getpassedactivityList" resultType="Map">
+		SELECT
+			ac.*, r.*, IFNULL(l.like_count, 0) AS like_count,aa.create_time
+		FROM
+			activity ac
+		LEFT JOIN activity_attend aa ON aa.activity_id = ac.activity_id
+		LEFT JOIN (
+			SELECT
+				l.article_id,
+				COUNT(*) AS like_count
+			FROM
+				`like` l
+			WHERE
+				l.article_type_code = 'AT0004'
+			GROUP BY
+				l.article_id
+		) l ON l.article_id = ac.activity_id
+		LEFT JOIN (
+			SELECT
+				r.article_id,
+				COUNT(*) AS review_count
+			FROM
+				review r
+			WHERE
+				r.article_type_code = 'AT0004'
+			GROUP BY
+				r.article_id
+		) r ON r.article_id = ac.activity_id
+		WHERE
+			aa.user_id = #{userId}
+		GROUP BY
+			ac.activity_id
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by ${sidx} ${order}
+			</when>
+			<when test="sort == 'desc'">
+				order by create_time desc
+			</when>
+			<when test="sort == 'asc'">
+				order by create_time asc
+			</when>
+		</choose>
+		<if test="offset !=null and limit !=null">
+			limit #{offset},#{limit}
+		</if>
+	</select>
+
+	<select id="getpassedactivityCount" resultType="int">
+			SELECT
+				COUNT(*)
+			FROM activity_attend aa
+			WHERE
+				aa.user_id =#{userId}
+	</select>
+
+	<select id="getfinishactivityList" resultType="Map">
+		SELECT
+		ac.*, r.*, IFNULL(l.like_count, 0) AS like_count,aa.create_time
+		FROM
+		activity ac
+		LEFT JOIN activity_attend aa ON aa.activity_id = ac.activity_id
+		LEFT JOIN (
+		SELECT
+		l.article_id,
+		COUNT(*) AS like_count
+		FROM
+		`like` l
+		WHERE
+		l.article_type_code = 'AT0004'
+		GROUP BY
+		l.article_id
+		) l ON l.article_id = ac.activity_id
+		LEFT JOIN (
+		SELECT
+		r.article_id,
+		COUNT(*) AS review_count
+		FROM
+		review r
+		WHERE
+		r.article_type_code = 'AT0004'
+		GROUP BY
+		r.article_id
+		) r ON r.article_id = ac.activity_id
+		WHERE
+		aa.user_id = #{userId}
+		AND ac.activity_status_code = 'AVS003'
+		GROUP BY
+		ac.activity_id
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by ${sidx} ${order}
+			</when>
+			<when test="sort == 'desc'">
+				order by create_time desc
+			</when>
+			<when test="sort == 'asc'">
+				order by create_time asc
+			</when>
+		</choose>
+		<if test="offset !=null and limit !=null">
+			limit #{offset},#{limit}
+		</if>
+	</select>
+
+	<select id="getfinishactivityCount"  resultType="int">
+			SELECT
+			COUNT(ac.activity_id)
+			FROM
+			activity ac
+			LEFT JOIN activity_attend aa ON aa.activity_id = ac.activity_id
+			WHERE
+			aa.user_id = #{userId}
+			AND ac.activity_status_code = 'AVS003'
+	</select>
+
+	<select id="getByLatLng" resultType="xin.xiaoer.modules.activity.entity.Activity">
+		SELECT t.*,
+		avType.para_name AS activity_type,
+		avStatus.para_name AS activity_status
+		FROM activity t, sys_commpara avType, sys_commpara avStatus, activity_attend attend
+		WHERE 1 = 1
+		and t.activity_id = attend.activity_id
+		and attend.user_id = #{userId}
+		and t.state = '1'
+		and t.activity_status_code not like 'AVS003'
+		and DATE_FORMAT(t.period_to, '%Y-%m-%d %H:%i:%S') <![CDATA[>]]> DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S')
+		and DATE_FORMAT(t.register_end, '%Y-%m-%d') <![CDATA[<=]]> DATE_FORMAT( NOW(), '%Y-%m-%d')
+		and t.activity_type_code = avType.para_key
+		and t.activity_status_code = avStatus.para_key
+		and t.latitude <![CDATA[<=]]> #{maxLat}
+		and t.latitude <![CDATA[>=]]> #{minLat}
+		and t.longitude <![CDATA[>=]]> #{minLng}
+		and t.longitude <![CDATA[<=]]> #{maxLng}
+		group by t.activity_id
+	</select>
+
+	<select id="getByAddress" resultType="xin.xiaoer.modules.activity.entity.Activity">
+		SELECT t.*,
+		avType.para_name AS activity_type,
+		avStatus.para_name AS activity_status
+		FROM activity t, sys_commpara avType, sys_commpara avStatus, activity_attend attend
+		WHERE t.location = #{address}
+		and t.activity_id = attend.activity_id
+		and attend.user_id = #{useId}
+		AND t.state = '1'
+		and t.activity_status_code not like 'AVS003'
+		and t.period_to <![CDATA[>]]> NOW()
+		and t.register_end <![CDATA[<=]]> NOW()
+		AND t.activity_type_code = avType.para_key
+		AND t.activity_status_code = avStatus.para_key
+		limit 1
+	</select>
+
+	<select id="getListItemObject" resultType="xin.xiaoer.modules.mobile.entity.ActivityListItem">
+		SELECT av.*,
+		avType.para_name as activityType,
+		avStatus.para_name as activityStatus
+		<include refid="listDataFromWhere" />
+	</select>
+
+	<select id="getFeaturedItems" resultType="xin.xiaoer.modules.mobile.entity.ActivityFeaturedItem">
+		SELECT av.*,
+		avType.para_name as activityType,
+		avStatus.para_name as activityStatus
+		FROM (select av.activity_id as activityId,
+		av.activity_type_code AS activityTypeCode,
+		av.activity_status_code as activityStatusCode,
+		av.title,
+		av.register_end as registerEnd,
+		av.number_of_people as numberOfPeople,
+		file.url AS featuredImage,
+		IF(attend.user_id, TRUE , FALSE ) AS attendYN
+		FROM (select av.*,
+		(if(review.review_count, review.review_count, 0) + if(cLike.like_count, cLike.like_count, 0) + if(av.read_count, av.read_count, 0)) as rlrCount
+		from activity av
+		left join (select count(*) as review_count,
+		article_id
+		from review where article_type_code = 'AT0004' group by article_id) as review
+		on review.article_id = av.activity_id
+		left join (select count(*) as like_count,
+		article_id
+		from `like` where article_type_code = 'AT0004' group by article_id) as cLike
+		on cLike.article_id = av.activity_id) av
+		LEFT JOIN (SELECT * FROM activity_attend attend
+		WHERE 1 = 1
+		<if test="userId != null and userId != ''">AND attend.user_id = #{userId}</if>) attend
+		ON attend.activity_id = av.activity_id
+		LEFT JOIN sys_file file
+		ON file.upload_id = av.featured_image
+		WHERE 1 = 1
+		AND av.state = '1'
+		AND av.featured_yn = 'Y'
+		<if test="spaceId != null and spaceId != ''">AND av.space_id = #{spaceId}</if>
+		order by av.rlrCount desc, av.create_at desc
+		limit 0, 3) AS av, sys_commpara avType, sys_commpara avStatus
+		WHERE av.activityTypeCode = avType.para_key
+		AND av.activityStatusCode = avStatus.para_key
+	</select>
+
+	<select id="queryListData" resultType="xin.xiaoer.modules.mobile.entity.ActivityListItem">
+		SELECT av.*,
+		avType.para_name as activityType,
+		avStatus.para_name as activityStatus
+		<include refid="listDataFromWhere" />
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+		<!--SELECT *-->
+		<!--FROM activity av-->
+		<!--LEFT JOIN-->
+		<!--(SELECT sp.space_id-->
+		<!--FROM space sp-->
+		<!--WHERE sp.state = '1'-->
+		<!--<if test="city != null and city != ''"> and sp.city = #{city} </if>) sid-->
+		<!--ON av.space_id = sid.space_id-->
+		<!--WHERE av.space_id = sid.space_id-->
+		<!--<if test="offset != null and limit != null">-->
+		<!--limit #{offset}, #{limit}-->
+		<!--</if>-->
+	</select>
+
+	<select id="countListData" resultType="int">
+		select count(*) <include refid="listDataFromWhere" />
+	</select>
+
+	<!-- 搜索数据区域 -->
+	<sql id="listDataFromWhere">
+		FROM (select av.activity_id as activityId,
+		av.activity_type_code AS activityTypeCode,
+		av.activity_status_code as activityStatusCode,
+		av.title,
+		av.register_end as registerEnd,
+		av.number_of_people as numberOfPeople,
+		file.url AS featuredImage,
+		av.space_id AS avspaceId,
+		IF(attend.user_id, TRUE , FALSE ) AS attendYN
+		FROM activity av
+		LEFT JOIN (SELECT * FROM activity_attend attend
+		WHERE 1 = 1
+		<if test="userId != null and userId != ''">AND attend.user_id = #{userId}</if>) attend
+		ON attend.activity_id = av.activity_id
+		LEFT JOIN sys_file file
+		ON file.upload_id = av.featured_image
+		WHERE 1 = 1 AND av.state = '1'
+		<if test="spaceId != null and spaceId != ''">AND av.space_id = #{spaceId}</if>)
+		AS av, sys_commpara avType, sys_commpara avStatus
+		WHERE av.activityTypeCode = avType.para_key
+		AND av.activityStatusCode = avStatus.para_key
+		<if test="activityStatusCode != null and activityStatusCode != ''">
+			AND av.activityStatusCode = #{activityStatusCode}
+		</if>
+		<if test="activityId != null and activityId != ''"> and av.activityId = #{activityId} </if>
+	</sql>
+
+	<select id="getPersonalList" resultType="xin.xiaoer.modules.mobile.entity.PersonalActivity">
+		select t.*,
+		file.url as featured_image
+		FROM (select act.activity_id,
+		act.featured_image as thumbnail,
+		act.period_from,
+		act.period_to,
+		act.title,
+		act.activity_type_code,
+		act.activity_status_code,
+		act.number_of_people,
+		att.create_time as attend_at
+		from activity act, activity_attend att
+		where act.activity_id = att.activity_id
+		and act.state = '1'
+		and att.user_id = #{userId}
+		<if test="spaceId != null and spaceId != ''"> and act.space_id = #{spaceId} </if>
+		<if test="activityStatus != null and activityStatus != '' and activityStatus == 'AVS003'"> and act.activity_status_code = #{activityStatus} </if>
+		<if test="activityStatus != null and activityStatus != '' and activityStatus == 'AVS004'"> and (act.activity_status_code = 'AVS001' OR act.activity_status_code = 'AVS002') </if>) t
+		left join (select * from sys_file group by upload_id) file
+		on file.upload_id = t.thumbnail
+		order by t.attend_at DESC
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<select id="getPersonalCount" resultType="int">
+		select count(*) from (select act.activity_id,
+		act.featured_image as thumbnail,
+		act.period_from,
+		act.period_to,
+		act.title,
+		act.activity_type_code,
+		act.activity_status_code,
+		act.number_of_people,
+		att.create_time as attend_at
+		from activity act, activity_attend att
+		where act.activity_id = att.activity_id
+		and act.state = '1'
+		and att.user_id = #{userId}
+		<if test="spaceId != null and spaceId != ''"> and act.space_id = #{spaceId} </if>
+		<if test="activityStatus != null and activityStatus != '' and activityStatus == 'AVS003'"> and act.activity_status_code = #{activityStatus} </if>
+		<if test="activityStatus != null and activityStatus != '' and activityStatus == 'AVS004'"> and (act.activity_status_code = 'AVS001' OR act.activity_status_code = 'AVS002') </if>) t
+		left join (select * from sys_file group by upload_id) file
+		on file.upload_id = t.thumbnail
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.activity.entity.ActivityList">
+		select t.*,
+		asn.sign_number,
+		avType.para_name AS activity_type,
+		avStatus.para_name AS activity_status
+		FROM (select t.*, sp.space_name from activity t
+		left join space sp
+		on sp.space_id = t.space_id ) t, sys_commpara avType, sys_commpara avStatus, activity_sign_number asn
+		<include refid="where_clause" />
+		<choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by ${sidx} ${order}
+			</when>
+			<otherwise>
+				order by activity_id desc
+			</otherwise>
+		</choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<select id="getCount" resultType="int">
+		select count(*) from (select t.*, sp.space_name from activity t
+		left join space sp
+		on sp.space_id = t.space_id ) t, sys_commpara avType, sys_commpara avStatus, activity_sign_number asn
+		<include refid="where_clause" />
+	</select>
+
+	<select id="getListAll" resultType="xin.xiaoer.modules.activity.entity.ActivityList">
+		select t.* from activity t
+	</select>
+
+	<!-- 搜索数据区域 -->
+	<sql id="where_clause">
+		<where>
+			1=1
+			AND t.activity_type_code = avType.para_key
+			AND t.activity_status_code = avStatus.para_key
+			and t.activity_id = asn.activity_id
+			<if test="activityId != null and activityId != ''"> and t.activity_id = #{activityId} </if>
+			<if test="activityIdVague != null and activityIdVague != ''"> and t.activity_id like concat('%',#{activityIdVague},'%') </if>
+			<if test="spaceId != null and spaceId != ''"> and t.space_id = #{spaceId} </if>
+			<if test="cityId != null and cityId != ''"> and t.city_id = #{cityId} </if>
+			<if test="activityTypeCode != null and activityTypeCode != ''"> and t.activity_type_code = #{activityTypeCode} </if>
+			<if test="activityTypeCodeVague != null and activityTypeCodeVague != ''"> and t.activity_type_code like concat('%',#{activityTypeCodeVague},'%') </if>
+			<if test="title != null and title != ''"> and t.title = #{title} </if>
+			<if test="cityId != null and cityId != ''"> and av.city_id = #{cityId} </if>
+			<if test="titleVague != null and titleVague != ''"> and t.title like concat('%',#{titleVague},'%') </if>
+			<if test="content != null and content != ''"> and t.content = #{content} </if>
+			<if test="contentVague != null and contentVague != ''"> and t.content like concat('%',#{contentVague},'%') </if>
+			<if test="featuredImage != null and featuredImage != ''"> and t.featured_image = #{featuredImage} </if>
+			<if test="featuredImageVague != null and featuredImageVague != ''"> and t.featured_image like concat('%',#{featuredImageVague},'%') </if>
+			<if test="periodFrom != null and periodFrom != ''"> and t.period_from = #{periodFrom} </if>
+			<if test="periodFromVague != null and periodFromVague != ''"> and t.period_from like concat('%',#{periodFromVague},'%') </if>
+			<if test="periodTo != null and periodTo != ''"> and t.period_to = #{periodTo} </if>
+			<if test="periodToVague != null and periodToVague != ''"> and t.period_to like concat('%',#{periodToVague},'%') </if>
+			<if test="activityStatusCode != null and activityStatusCode != ''"> and t.activity_status_code = #{activityStatusCode} </if>
+			<if test="activityStatusCodeVague != null and activityStatusCodeVague != ''"> and t.activity_status_code like concat('%',#{activityStatusCodeVague},'%') </if>
+			<if test="numberOfPeople != null and numberOfPeople != ''"> and t.number_of_people = #{numberOfPeople} </if>
+			<if test="numberOfPeopleVague != null and numberOfPeopleVague != ''"> and t.number_of_people like concat('%',#{numberOfPeopleVague},'%') </if>
+			<if test="readCount != null and readCount != ''"> and t.read_count = #{readCount} </if>
+			<if test="readCountVague != null and readCountVague != ''"> and t.read_count like concat('%',#{readCountVague},'%') </if>
+			<if test="location != null and location != ''"> and t.location = #{location} </if>
+			<if test="locationVague != null and locationVague != ''"> and t.location like concat('%',#{locationVague},'%') </if>
+			<if test="latitude != null and latitude != ''"> and t.latitude = #{latitude} </if>
+			<if test="latitudeVague != null and latitudeVague != ''"> and t.latitude like concat('%',#{latitudeVague},'%') </if>
+			<if test="longitude != null and longitude != ''"> and t.longitude = #{longitude} </if>
+			<if test="longitudeVague != null and longitudeVague != ''"> and t.longitude like concat('%',#{longitudeVague},'%') </if>
+			<if test="state != null and state != ''"> and t.state = #{state} </if>
+			<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+			<if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+			<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+			<if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+			<if test="createByVague != null and createByVague != ''"> and t.create_by like concat('%',#{createByVague},'%') </if>
+			<if test="updateAt != null and updateAt != ''"> and t.update_at = #{updateAt} </if>
+			<if test="updateAtVague != null and updateAtVague != ''"> and t.update_at like concat('%',#{updateAtVague},'%') </if>
+			<if test="updateBy != null and updateBy != ''"> and t.update_by = #{updateBy} </if>
+			<if test="updateByVague != null and updateByVague != ''"> and t.update_by like concat('%',#{updateByVague},'%') </if>
+		</where>
+	</sql>
+
+	<insert id="save" parameterType="xin.xiaoer.modules.activity.entity.Activity" useGeneratedKeys="true" keyProperty="activityId">
+		insert into activity
+		(
+		`activity_type_code`,
+		`space_id`,
+		`title`,
+		`content`,
+		`featured_image`,
+		`period_from`,
+		`period_to`,
+		`register_end`,
+		`activity_status_code`,
+		`number_of_people`,
+		`contact_name`,
+		`contact_phone`,
+		`read_count`,
+		`location`,
+		`district`,
+		`city`,
+		`province`,
+		`street`,
+		`street_number`,
+		`latitude`,
+		`longitude`,
+		`weight`,
+		`integral`,
+		`featured_yn`,
+		`state`,
+		`create_at`,
+		`create_by`,
+		`update_at`,
+		`update_by`
+		)
+		values
+		(
+		#{activityTypeCode},
+		#{spaceId},
+		#{title},
+		#{content},
+		#{featuredImage},
+		#{periodFrom},
+		#{periodTo},
+		#{registerEnd},
+		#{activityStatusCode},
+		#{numberOfPeople},
+		#{contactName},
+		#{contactPhone},
+		#{readCount},
+		#{location},
+		#{district},
+		#{city},
+		#{province},
+		#{street},
+		#{streetNumber},
+		#{latitude},
+		#{longitude},
+		#{weight},
+		#{integral},
+		#{featuredYn},
+		#{state},
+		DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S'),
+		#{createBy},
+		DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S'),
+		#{updateBy}
+		)
+	</insert>
+
+	<update id="update" parameterType="xin.xiaoer.modules.activity.entity.Activity">
+		update activity
+		<set>
+			<if test="activityTypeCode != null">`activity_type_code` = #{activityTypeCode}, </if>
+			<if test="spaceId != null">`space_id` = #{spaceId}, </if>
+			<if test="title != null">`title` = #{title}, </if>
+			<if test="content != null">`content` = #{content}, </if>
+			<if test="featuredImage != null">`featured_image` = #{featuredImage}, </if>
+			<if test="periodFrom != null">`period_from` = #{periodFrom}, </if>
+			<if test="periodTo != null">`period_to` = #{periodTo}, </if>
+			<if test="registerEnd != null">`register_end` = #{registerEnd}, </if>
+			<if test="activityStatusCode != null">`activity_status_code` = #{activityStatusCode}, </if>
+			<if test="numberOfPeople != null">`number_of_people` = #{numberOfPeople}, </if>
+			<if test="contactName != null">`contact_name` = #{contactName}, </if>
+			<if test="contactPhone != null">`contact_phone` = #{contactPhone}, </if>
+			<if test="readCount != null and readCount != 0">`read_count` = #{readCount}, </if>
+			<if test="location != null">`location` = #{location}, </if>
+			<if test="district != null">`district` = #{district}, </if>
+			<if test="city != null">`city` = #{city}, </if>
+			<if test="province != null">`province` = #{province}, </if>
+			<if test="street != null">`street` = #{street}, </if>
+			<if test="streetNumber != null">`street_number` = #{streetNumber}, </if>
+			<if test="latitude != null">`latitude` = #{latitude}, </if>
+			<if test="longitude != null">`longitude` = #{longitude}, </if>
+			<if test="weight != null">`weight` = #{weight}, </if>
+			<if test="integral != null">`integral` = #{integral}, </if>
+			<if test="featuredYn != null">`featured_yn` = #{featuredYn}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy},</if>
+			`update_at` = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S')
+		</set>
+		where activity_id = #{activityId}
+	</update>
+
+	<delete id="delete">
+		delete from activity where activity_id = #{value}
+	</delete>
+
+	<delete id="deleteBatch">
+		delete from activity where activity_id in
+		<foreach item="activityId" collection="array" open="(" separator="," close=")">
+			#{activityId}
+		</foreach>
+	</delete>
+
+	<!--查询所有,时间倒序-->
+	<select id="getSplendidActivity" resultType="xin.xiaoer.modules.activity.entity.Activity">
+		SELECT a.activity_id,
+		a.title,
+		a.create_at,
+		a.space_id
+		FROM activity a
+		WHERE 1=1
+		AND a.state='1'
+		<if test="spaceId != null">
+			AND a.space_id = #{spaceId}
+		</if>
+		ORDER BY a.create_at DESC
+		LIMIT 10
+	</select>
+
+	<!--点赞数，收藏数，评论数-->
+	<select id="getPublicCount" resultType="map">
+		SELECT
+		rc.reviewCount,
+		lc.likeCount,
+		fc.favoriteCount
+		FROM
+		(
+		SELECT
+		COUNT(*) AS reviewCount
+		FROM
+		review r
+		WHERE
+		1 = 1
+		<if test="articleType != null and articleType !='' and articleId != null and articleId != ''">
+			AND r.article_type_code = #{articleType}
+			AND r.article_id = #{articleId}
+		</if>
+		) rc,
+		(
+		SELECT
+		COUNT(*) AS likeCount
+		FROM
+		`like` l
+		WHERE
+		1 = 1
+		<if test="articleType != null and articleType !='' and articleId != null and articleId != ''">
+
+			AND l.article_type_code = #{articleType}
+			AND l.article_id = #{articleId}
+		</if>
+		) lc,
+		(
+		SELECT
+		COUNT(*) AS favoriteCount
+		FROM
+		favourite f
+		WHERE
+		1=1
+		<if test="articleType != null and articleType !='' and articleId != null and articleId != ''">
+
+			AND f.article_type_code = #{articleType}
+			AND f.article_id = #{articleId}
+		</if>
+		) fc
+
+	</select>
+</mapper>

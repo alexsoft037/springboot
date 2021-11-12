@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.favourite.dao.FavouriteDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.favourite.entity.Favourite" id="favouriteMap">
+        <result property="fvId" column="fv_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="articleId" column="article_id"/>
+        <result property="articleTypeCode" column="article_type_code"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateAt" column="update_at"/>
+        <result property="updateBy" column="update_by"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.favourite.entity.Favourite">
+		select * from favourite where fv_id = #{value}
+	</select>
+
+	<select id="getByArticleAndUser" resultType="xin.xiaoer.modules.favourite.entity.Favourite">
+		select * from favourite where article_id = #{articleId} AND article_type_code = #{articleType} AND user_id = #{userId} limit 1
+	</select>
+
+	<select id="getfavouCount" resultType="int">
+		SELECT COUNT(fa.fv_id)
+		FROM favourite fa
+		WHERE fa.article_id = #{articleId}
+		AND fa.article_type_code = #{articleTypeCode}
+	</select>
+
+	<select id="getPersonalList" resultType="xin.xiaoer.modules.mobile.entity.PersonalFavourite">
+		select fav.*,
+			file.url as featured_image
+		from (select fav.article_id,
+				fav.article_type_code,
+				sh.title,
+				sh.content,
+				sh.create_at,
+				sh.featured_image as featured,
+				fav.create_at as fav_date
+			from favourite fav, space_headline sh
+			where fav.article_type_code = 'AT0002'
+			and sh.state = '1'
+			and fav.user_id = #{userId}
+			and fav.article_id = sh.headline_id
+			<if test="articleType != null and articleType != ''"> and fav.article_type_code = #{articleType} </if>
+			<if test="search != null and search != ''"> and (sh.title like concat('%',#{search},'%') or sh.content like concat('%',#{search},'%')) </if>
+			union
+			select fav.article_id,
+				fav.article_type_code,
+				ar.title,
+				ar.content,
+				ar.create_at,
+				ar.featured_image as featured,
+				ar.create_at as fav_date
+			from favourite fav, activity_report ar
+			where fav.article_type_code = 'AT0003'
+			and ar.state = '1'
+			and fav.user_id = #{userId}
+			and fav.article_id = ar.report_id
+			<if test="articleType != null and articleType != ''"> and fav.article_type_code = #{articleType} </if>
+			<if test="search != null and search != ''"> and (ar.title like concat('%',#{search},'%') or ar.content like concat('%',#{search},'%')) </if>) as fav
+		left join (select * from sys_file group by upload_id) file
+		on file.upload_id = fav.featured
+		order by fav.fav_date DESC
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<select id="getPersonalCount" resultType="int">
+		select count(*)
+		from (select fav.article_id,
+				fav.article_type_code,
+				sh.title,
+				sh.content,
+				sh.create_at,
+				sh.featured_image as featured,
+				fav.create_at as fav_date
+			from favourite fav, space_headline sh
+			where fav.article_type_code = 'AT0002'
+			and sh.state = '1'
+			and fav.user_id = #{userId}
+			and fav.article_id = sh.headline_id
+			<if test="articleType != null and articleType != ''"> and fav.article_type_code = #{articleType} </if>
+			<if test="search != null and search != ''"> and (sh.title like concat('%',#{search},'%') or sh.content like concat('%',#{search},'%')) </if>
+			union
+			select fav.article_id,
+				fav.article_type_code,
+				ar.title,
+				ar.content,
+				ar.create_at,
+				ar.featured_image as featured,
+				ar.create_at as fav_date
+			from favourite fav, activity_report ar
+			where fav.article_type_code = 'AT0003'
+			and ar.state = '1'
+			and fav.user_id = #{userId}
+			and fav.article_id = ar.report_id
+			<if test="articleType != null and articleType != ''"> and fav.article_type_code = #{articleType} </if>
+			<if test="search != null and search != ''"> and (ar.title like concat('%',#{search},'%') or ar.content like concat('%',#{search},'%')) </if>) as fav
+		left join (select * from sys_file group by upload_id) file
+		on file.upload_id = fav.featured
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.favourite.entity.Favourite">
+		select * from favourite t <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by fv_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from favourite t  <include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="fvId != null and fvId != ''"> and t.fv_id = #{fvId} </if>
+    		<if test="fvIdVague != null and fvIdVague != ''"> and t.fv_id like concat('%',#{fvIdVague},'%') </if>
+            <if test="userId != null and userId != ''"> and t.user_id = #{userId} </if>
+    		<if test="userIdVague != null and userIdVague != ''"> and t.user_id like concat('%',#{userIdVague},'%') </if>
+            <if test="articleId != null and articleId != ''"> and t.article_id = #{articleId} </if>
+    		<if test="articleIdVague != null and articleIdVague != ''"> and t.article_id like concat('%',#{articleIdVague},'%') </if>
+            <if test="articleTypeCode != null and articleTypeCode != ''"> and t.article_type_code = #{articleTypeCode} </if>
+    		<if test="articleTypeCodeVague != null and articleTypeCodeVague != ''"> and t.article_type_code like concat('%',#{articleTypeCodeVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+    		<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+            <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+    		<if test="createByVague != null and createByVague != ''"> and t.create_by like concat('%',#{createByVague},'%') </if>
+            <if test="updateAt != null and updateAt != ''"> and t.update_at = #{updateAt} </if>
+    		<if test="updateAtVague != null and updateAtVague != ''"> and t.update_at like concat('%',#{updateAtVague},'%') </if>
+            <if test="updateBy != null and updateBy != ''"> and t.update_by = #{updateBy} </if>
+    		<if test="updateByVague != null and updateByVague != ''"> and t.update_by like concat('%',#{updateByVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.favourite.entity.Favourite">
+		insert into favourite
+		(
+			`fv_id`, 
+			`user_id`, 
+			`article_id`, 
+			`article_type_code`,
+			`state`, 
+			`create_at`, 
+			`create_by`, 
+			`update_at`, 
+			`update_by`
+		)
+		values
+		(
+			#{fvId}, 
+			#{userId}, 
+			#{articleId}, 
+			#{articleTypeCode},
+			#{state}, 
+			NOW(),
+			#{createBy}, 
+			NOW(),
+			#{updateBy}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.favourite.entity.Favourite">
+		update favourite 
+		<set>
+			<if test="userId != null">`user_id` = #{userId}, </if>
+			<if test="articleId != null">`article_id` = #{articleId}, </if>
+			<if test="articleTypeCode != null">`article_type_code` = #{articleTypeCode}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy},</if>
+			`update_at` = NOW()
+		</set>
+		where fv_id = #{fvId}
+	</update>
+	
+	<delete id="delete">
+		delete from favourite where fv_id = #{value}
+	</delete>
+
+	<delete id="deleteByArticle">
+		delete from favourite where article_id = #{articleId} AND article_type_code = #{articleType}
+	</delete>
+
+	<delete id="deleteByArticleAndUser">
+		delete from favourite where article_id = #{articleId} AND article_type_code = #{articleType} AND user_id = #{userId}
+	</delete>
+
+	<delete id="deleteBatch">
+		delete from favourite where fv_id in 
+		<foreach item="fvId" collection="array" open="(" separator="," close=")">
+			#{fvId}
+		</foreach>
+	</delete>
+
+	<select id="getCountByCodeAndId" resultType="int">
+		select count(*) from `favourite` t
+		where t.article_type_code = #{articleType}
+		AND t.article_id = #{articleId}
+	</select>
+
+</mapper>

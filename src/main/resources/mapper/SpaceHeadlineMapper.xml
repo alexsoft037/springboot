@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.spacehaedline.dao.SpaceHeadlineDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.spacehaedline.entity.SpaceHeadline" id="spaceHeadlineMap">
+        <result property="headlineId" column="headline_id"/>
+        <result property="spaceId" column="space_id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="featuredImage" column="featured_image"/>
+        <result property="authorName" column="author_name"/>
+        <result property="readCount" column="read_count"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateAt" column="update_at"/>
+        <result property="updateBy" column="update_by"/>
+    </resultMap>
+
+    <select id="getIntervalNews" resultType="xin.xiaoer.modules.mobile.entity.HeadlineListItem">
+        SELECT sh.headline_id,sh.space_id,sh.title,sh.create_at,sh.rank,sh.featured_image
+        FROM space_headline sh
+        WHERE 1=1
+        <if test="date!=null">
+            AND sh.create_at>=#{date}
+        </if>
+        <if test="left!=null and right !=null">
+            AND sh.create_at BETWEEN #{left} AND #{right}
+        </if>
+            order by sh.rank,sh.create_at desc
+        <if test="limit != null and offset!=null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="getNewsFlash" resultMap="spaceHeadlineMap">
+        SELECT sh.headline_id,sh.title,sh.create_at
+        FROM space_headline sh
+        WHERE 1=1
+        and sh.state='1'
+        ORDER BY sh.create_at DESC
+        <if test="offset !=null and limit !=null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+    <select id="getListItemObject" resultType="xin.xiaoer.modules.mobile.entity.HeadlineListItem">
+        select sh.headline_id as headlineId,
+        sh.title,
+        sh.content,
+        sh.author_name,
+        sh.create_at as createAt,
+        sh.create_by as createBy,
+        file.url AS featuredImage
+        <include refid="listDataFromWhere"/>
+    </select>
+
+    <sql id="selectSpaceHeadline">
+		select sh.*,
+				review.review_count,
+				cLike.like_count,
+				cFavourite.favourite_count,
+				(if(review.review_count, review.review_count, 0) + if(cLike.like_count, cLike.like_count, 0) + if(cFavourite.favourite_count, cFavourite.favourite_count, 0)) as rlfCount
+			from space_headline sh
+			left join (select count(*) as review_count,
+					article_id
+				from review where article_type_code = 'AT0002' group by article_id) as review
+			on review.article_id = sh.headline_id
+			left join (select count(*) as like_count,
+					article_id
+				from `like` where article_type_code = 'AT0002' group by article_id) as cLike
+			on cLike.article_id = sh.headline_id
+			left join (select count(*) as favourite_count,
+					article_id
+				from `favourite` where article_type_code = 'AT0002' group by article_id) as cFavourite
+			on cFavourite.article_id = sh.headline_id
+	</sql>
+    <select id="getrecommendeNews" resultType="xin.xiaoer.modules.mobile.entity.HeadlineListItem">
+        select sh.headline_id as headlineId,
+        sh.title,
+        sh.content,
+        sh.author_name,
+        sh.create_at as createAt,
+        sh.create_by as createBy,
+        file.url AS featuredImage,
+        review.review_count,
+        sh.like_count
+        <include refid="listDataFromWhere"/>
+        order by sh.rank,sh.rlfCount desc, sh.create_at desc
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+    <select id="queryListData" resultType="xin.xiaoer.modules.mobile.entity.HeadlineListItem">
+        select sh.headline_id as headlineId,
+        sh.title,
+        sh.content,
+        sh.author_name,
+        sh.create_at as createAt,
+        sh.create_by as createBy,
+        file.url AS featuredImage,
+        review.review_count,
+        sh.like_count
+        <include refid="listDataFromWhere"/>
+        order by sh.create_at desc, sh.rlfCount desc
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="countListData" resultType="int">
+        select count(*)
+        <include refid="listDataFromWhere"/>
+    </select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="listDataFromWhere">
+        from (<include refid="selectSpaceHeadline"/>) sh
+        LEFT JOIN sys_file file
+        ON file.upload_id = sh.featured_image
+        left join (select count(*) as review_count,
+        article_id
+        from review where article_type_code = 'AT0002' group by article_id) as review
+        on review.article_id = sh.headline_id
+        WHERE sh.state = '1'
+        <if test="headlineId != null and headlineId != ''">and sh.headline_id = #{headlineId}</if>
+        <if test="spaceId != null and spaceId != ''">and sh.space_id = #{spaceId}</if>
+        <if test="date != null and date !=''">and sh.create_at >= #{date}</if>
+    </sql>
+
+    <select id="get" resultType="xin.xiaoer.modules.spacehaedline.entity.SpaceHeadline">
+		select * from space_headline where headline_id = #{value}
+	</select>
+
+    <select id="getList" resultType="xin.xiaoer.modules.spacehaedline.entity.SpaceHeadline">
+        select t.*,
+        sp.space_name
+        from space_headline t
+        left join space sp
+        on sp.space_id = t.space_id
+        <include refid="where_clause"/>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by headline_id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="getCount" resultType="int">
+        select count(*) from space_headline t
+        <include refid="where_clause"/>
+    </select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="headlineId != null and headlineId != ''">and t.headline_id = #{headlineId}</if>
+            <if test="headlineIdVague != null and headlineIdVague != ''">and t.headline_id like
+                concat('%',#{headlineIdVague},'%')
+            </if>
+            <if test="spaceId != null and spaceId != ''">and t.space_id = #{spaceId}</if>
+            <if test="title != null and title != ''">and t.title = #{title}</if>
+            <if test="titleVague != null and titleVague != ''">and t.title like concat('%',#{titleVague},'%')</if>
+            <if test="content != null and content != ''">and t.content = #{content}</if>
+            <if test="contentVague != null and contentVague != ''">and t.content like concat('%',#{contentVague},'%')
+            </if>
+            <if test="featuredImage != null and featuredImage != ''">and t.featured_image = #{featuredImage}</if>
+            <if test="featuredImageVague != null and featuredImageVague != ''">and t.featured_image like
+                concat('%',#{featuredImageVague},'%')
+            </if>
+            <if test="readCount != null and readCount != ''">and t.read_count = #{readCount}</if>
+            <if test="readCountVague != null and readCountVague != ''">and t.read_count like
+                concat('%',#{readCountVague},'%')
+            </if>
+            <if test="state != null and state != ''">and t.state = #{state}</if>
+            <if test="stateVague != null and stateVague != ''">and t.state like concat('%',#{stateVague},'%')</if>
+            <if test="createAt != null and createAt != ''">and t.create_at = #{createAt}</if>
+            <if test="createAtVague != null and createAtVague != ''">and t.create_at like
+                concat('%',#{createAtVague},'%')
+            </if>
+            <if test="createBy != null and createBy != ''">and t.create_by = #{createBy}</if>
+            <if test="createByVague != null and createByVague != ''">and t.create_by like
+                concat('%',#{createByVague},'%')
+            </if>
+            <if test="updateAt != null and updateAt != ''">and t.update_at = #{updateAt}</if>
+            <if test="updateAtVague != null and updateAtVague != ''">and t.update_at like
+                concat('%',#{updateAtVague},'%')
+            </if>
+            <if test="updateBy != null and updateBy != ''">and t.update_by = #{updateBy}</if>
+            <if test="updateByVague != null and updateByVague != ''">and t.update_by like
+                concat('%',#{updateByVague},'%')
+            </if>
+            <if test="date != null and date !=''">and t.create_at >= #{date}</if>
+
+            <!--黄小东-->
+            <if test="left!=null and right !=null">
+                AND t.create_at >= #{left}
+            </if>
+        </where>
+    </sql>
+
+    <insert id="save" parameterType="xin.xiaoer.modules.spacehaedline.entity.SpaceHeadline" useGeneratedKeys="true"
+            keyProperty="headlineId">
+		insert into space_headline
+		(
+			`title`,
+			`space_id`,
+			`content`, 
+			`featured_image`, 
+			`author_name`,
+			`read_count`,
+			`state`, 
+			`create_at`, 
+			`create_by`, 
+			`update_at`, 
+			`update_by`,
+			`rank`
+		)
+		values
+		(
+			#{title},
+			#{spaceId},
+			#{content}, 
+			#{featuredImage}, 
+			#{authorName},
+			#{readCount},
+			#{state}, 
+			#{createAt},
+			#{createBy}, 
+			NOW(),
+			#{updateBy},
+			#{rank}
+		)
+	</insert>
+
+    <update id="update" parameterType="xin.xiaoer.modules.spacehaedline.entity.SpaceHeadline">
+        update space_headline
+        <set>
+            <if test="title != null">`title` = #{title},</if>
+            <if test="spaceId != null">`space_id` = #{spaceId},</if>
+            <if test="content != null">`content` = #{content},</if>
+            <if test="featuredImage != null">`featured_image` = #{featuredImage},</if>
+            <if test="authorName != null">`author_name` = #{authorName},</if>
+            <if test="readCount != null and readCount != 0">`read_count` = #{readCount},</if>
+            <if test="createAt != null">`create_at` = #{createAt},</if>
+            <if test="state != null">`state` = #{state},</if>
+            <if test="updateBy != null">`update_by` = #{updateBy},</if>
+            /*新加*/
+            <if test="rank != null">`rank` = #{rank},</if>
+            `update_at` = NOW()
+        </set>
+        where headline_id = #{headlineId}
+    </update>
+
+    <delete id="delete">
+		delete from space_headline where headline_id = #{value}
+	</delete>
+
+    <delete id="deleteBatch">
+        delete from space_headline where headline_id in
+        <foreach item="headlineId" collection="array" open="(" separator="," close=")">
+            #{headlineId}
+        </foreach>
+    </delete>
+
+</mapper>

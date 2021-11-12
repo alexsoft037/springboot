@@ -1,0 +1,12 @@
+body{font:14px/25px "Microsoft YaHei","å¾®è½¯é›…é»‘",SimSun,"å®‹ä½“",HELVETICA}.width1200{width:1200px;margin:0 auto}.t_header{min-width:1200px}.t_header h2{color:#003d6f}.t_header h2 a.home{color:#4e5658}.h_right{float:right;display:inline;width:350px;padding-top:48px;padding-right:10px;background-position:0 16px}.top_right{color:#666;text-align:right}.main-wrapper{min-width:1200px;height:670px;background:url(../image/down_bg.jpg) no-repeat center 0}.m_left{float:left;width:335px;height:622px;margin-top:48px;margin-left:148px;background:url(../image/phone.png) no-repeat}.m_right{float:right;width:424px;margin-right:90px;padding-top:100px}.m_right h3{font-size:36px;line-height:82px;color:#fff;font-weight:400}.m_right p{font-size:24px;line-height:46px;color:#fff}.m_right .m_r_bottom{margin-top:45px}
+.m_r_bottom a.andriad{float:left;width:162px;height:66px;margin-top:50px;margin-left:5px;text-align:center;padding-left:48px;background:url(../image/Android.png) no-repeat}
+.m_r_bottom a.andriad:hover{text-decoration:none;background:url(../image/Android_hover.png) no-repeat}
+.andriad .and_top{font-size:22px;color:#333;line-height:38px;padding-top:2px}
+.andriad .and_bom{font-size:14px;color:#333;line-height:20px}
+.m_r_bottom a.ios{float:left;width:162px;height:66px;margin-top:26px;margin-left:5px;text-align:center;padding-left:48px;background:url(../image/ios.png) no-repeat}
+.m_r_bottom a.ios:hover{text-decoration:none;background:url(../image/ios_hover.png) no-repeat}
+.ios .and_top{font-size:22px;color:#333;line-height:38px;padding-top:2px}
+.ios .and_bom{font-size:14px;color:#333;line-height:20px}
+.ios {border: 1px solid #fff;border-radius: 5px;}
+.m_r_bottom .ma{float:right;width:148px;margin-top:-66px;height:148px;border:5px solid rgba(255,255,255,.4)}
+.foot{margin-top:0}

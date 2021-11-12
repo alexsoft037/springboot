@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.newsrecom.dao.NewsRecomDao">
+
+    <resultMap type="xin.xiaoer.modules.newsrecom.entity.NewsRecom" id="newsRecomMap">
+        <result property="spaceId" column="space_id"/>
+    </resultMap>
+    <insert id="save" parameterType="xin.xiaoer.modules.newsrecom.entity.NewsRecom" useGeneratedKeys="true" keyProperty="id">
+        insert into space_news_recom
+        (
+        `title`,
+        `content`,
+        `space_id`
+        )
+        values
+        (
+        #{title},
+        #{content},
+        #{spaceId}
+        )
+    </insert>
+
+    <delete id="delete">
+        delete from space_news_recom where story_id = #{value}
+    </delete>
+</mapper>

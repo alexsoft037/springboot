@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.activityappraisal.dao.ActivityAppraisalDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.activityappraisal.entity.ActivityAppraisal" id="activityAppraisalMap">
+        <result property="appraisalId" column="appraisal_id"/>
+        <result property="spaceId" column="space_id"/>
+        <result property="title" column="title"/>
+		<result property="htmlId" column="html_id"/>
+        <result property="featuredImage" column="featured_image"/>
+        <result property="contentFile" column="content_file"/>
+        <result property="readCount" column="read_count"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateAt" column="update_at"/>
+        <result property="updateBy" column="update_by"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.activityappraisal.entity.ActivityAppraisal">
+		select * from activity_appraisal where appraisal_id = #{value}
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.activityappraisal.entity.ActivityAppraisal">
+		select t.*,
+		       sp.space_name
+		from activity_appraisal t
+		left join space sp
+		on sp.space_id = t.space_id
+		<include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by appraisal_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from activity_appraisal t
+		<include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="appraisalId != null and appraisalId != ''"> and t.appraisal_id = #{appraisalId} </if>
+    		<if test="appraisalIdVague != null and appraisalIdVague != ''"> and t.appraisal_id like concat('%',#{appraisalIdVague},'%') </if>
+            <if test="spaceId != null and spaceId != ''"> and t.space_id = #{spaceId} </if>
+    		<if test="spaceIdVague != null and spaceIdVague != ''"> and t.space_id like concat('%',#{spaceIdVague},'%') </if>
+            <if test="title != null and title != ''"> and t.title = #{title} </if>
+    		<if test="titleVague != null and titleVague != ''"> and t.title like concat('%',#{titleVague},'%') </if>
+            <if test="featuredImage != null and featuredImage != ''"> and t.featured_image = #{featuredImage} </if>
+    		<if test="featuredImageVague != null and featuredImageVague != ''"> and t.featured_image like concat('%',#{featuredImageVague},'%') </if>
+            <if test="contentFile != null and contentFile != ''"> and t.content_file = #{contentFile} </if>
+    		<if test="contentFileVague != null and contentFileVague != ''"> and t.content_file like concat('%',#{contentFileVague},'%') </if>
+            <if test="readCount != null and readCount != ''"> and t.read_count = #{readCount} </if>
+    		<if test="readCountVague != null and readCountVague != ''"> and t.read_count like concat('%',#{readCountVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+    		<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+            <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+    		<if test="createByVague != null and createByVague != ''"> and t.create_by like concat('%',#{createByVague},'%') </if>
+            <if test="updateAt != null and updateAt != ''"> and t.update_at = #{updateAt} </if>
+    		<if test="updateAtVague != null and updateAtVague != ''"> and t.update_at like concat('%',#{updateAtVague},'%') </if>
+            <if test="updateBy != null and updateBy != ''"> and t.update_by = #{updateBy} </if>
+    		<if test="updateByVague != null and updateByVague != ''"> and t.update_by like concat('%',#{updateByVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.activityappraisal.entity.ActivityAppraisal" useGeneratedKeys="true" keyProperty="appraisalId">
+		insert into activity_appraisal
+		(
+			`space_id`, 
+			`title`,
+			`html_id`,
+			`featured_image`, 
+			`content_file`, 
+			`read_count`,
+			`state`, 
+			`create_at`, 
+			`create_by`, 
+			`update_at`, 
+			`update_by`
+		)
+		values
+		(
+			#{spaceId},
+			#{title},
+			#{htmlId},
+			#{featuredImage}, 
+			#{contentFile}, 
+			#{readCount},
+			#{state}, 
+			NOW(),
+			#{createBy}, 
+			NOW(),
+			#{updateBy}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.activityappraisal.entity.ActivityAppraisal">
+		update activity_appraisal 
+		<set>
+			<if test="spaceId != null">`space_id` = #{spaceId}, </if>
+			<if test="title != null">`title` = #{title}, </if>
+			<if test="htmlId != null">`html_id` = #{htmlId}, </if>
+			<if test="featuredImage != null">`featured_image` = #{featuredImage}, </if>
+			<if test="contentFile != null">`content_file` = #{contentFile}, </if>
+			<if test="readCount != null and readCount != 0">`read_count` = #{readCount}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy},</if>
+			`update_at` = NOW()
+		</set>
+		where appraisal_id = #{appraisalId}
+	</update>
+	
+	<delete id="delete">
+		delete from activity_appraisal where appraisal_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from activity_appraisal where appraisal_id in 
+		<foreach item="appraisalId" collection="array" open="(" separator="," close=")">
+			#{appraisalId}
+		</foreach>
+	</delete>
+
+</mapper>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.newcommonweal.dao.NewCommonwealDao">
+
+    <resultMap type="xin.xiaoer.modules.newcommonweal.entity.NewCommonweal" id="newsCommonwealMap">
+        <result property="introcontent" column="intro_content"/>
+        <result property="state" column="state"/>
+    </resultMap>
+    <insert id="save" parameterType="xin.xiaoer.modules.newcommonweal.entity.NewCommonweal" useGeneratedKeys="true" keyProperty="id">
+        insert into donate_space_latest
+        (
+        `item_id`,
+        `intro_content`,
+        `state`
+        )
+        values
+        (
+        #{itemid},
+        #{introcontent},
+        #{state}
+        )
+    </insert>
+
+    <delete id="delete">
+        delete from donate_space_latest where story_id = #{value}
+    </delete>
+</mapper>

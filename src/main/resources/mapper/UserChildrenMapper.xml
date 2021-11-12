@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.monitor.dao.UserChildrenDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.monitor.entity.UserChildren" id="userChildrenMap">
+        <result property="childrenId" column="children_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="name" column="name"/>
+        <result property="photo" column="photo"/>
+        <result property="sex" column="sex"/>
+        <result property="height" column="height"/>
+        <result property="birthday" column="birthday"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateAt" column="update_at"/>
+        <result property="updateBy" column="update_by"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.monitor.entity.UserChildren">
+		select * from user_children where children_id = #{value}
+	</select>
+
+	<select id="getCodeValues" resultType="xin.xiaoer.entity.CodeValue">
+		select uc.children_id as code, uc.name as `value` from user_children uc, sys_user su
+		where su.user_id = uc.user_id
+		and uc.state = '1'
+		and su.status = '1'
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.monitor.entity.UserChildren">
+		select * from user_children t <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by children_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from user_children t  <include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="childrenId != null and childrenId != ''"> and t.children_id = #{childrenId} </if>
+    		<if test="childrenIdVague != null and childrenIdVague != ''"> and t.children_id like concat('%',#{childrenIdVague},'%') </if>
+            <if test="userId != null and userId != ''"> and t.user_id = #{userId} </if>
+    		<if test="userIdVague != null and userIdVague != ''"> and t.user_id like concat('%',#{userIdVague},'%') </if>
+            <if test="name != null and name != ''"> and t.name = #{name} </if>
+    		<if test="nameVague != null and nameVague != ''"> and t.name like concat('%',#{nameVague},'%') </if>
+            <if test="photo != null and photo != ''"> and t.photo = #{photo} </if>
+    		<if test="photoVague != null and photoVague != ''"> and t.photo like concat('%',#{photoVague},'%') </if>
+            <if test="sex != null and sex != ''"> and t.sex = #{sex} </if>
+    		<if test="sexVague != null and sexVague != ''"> and t.sex like concat('%',#{sexVague},'%') </if>
+            <if test="height != null and height != ''"> and t.height = #{height} </if>
+    		<if test="heightVague != null and heightVague != ''"> and t.height like concat('%',#{heightVague},'%') </if>
+            <if test="birthday != null and birthday != ''"> and t.birthday = #{birthday} </if>
+    		<if test="birthdayVague != null and birthdayVague != ''"> and t.birthday like concat('%',#{birthdayVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+    		<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+            <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+    		<if test="createByVague != null and createByVague != ''"> and t.create_by like concat('%',#{createByVague},'%') </if>
+            <if test="updateAt != null and updateAt != ''"> and t.update_at = #{updateAt} </if>
+    		<if test="updateAtVague != null and updateAtVague != ''"> and t.update_at like concat('%',#{updateAtVague},'%') </if>
+            <if test="updateBy != null and updateBy != ''"> and t.update_by = #{updateBy} </if>
+    		<if test="updateByVague != null and updateByVague != ''"> and t.update_by like concat('%',#{updateByVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.monitor.entity.UserChildren" useGeneratedKeys="true" keyProperty="childrenId">
+		insert into user_children
+		(
+			`user_id`, 
+			`name`, 
+			`photo`, 
+			`sex`, 
+			`height`, 
+			`birthday`, 
+			`state`, 
+			`create_at`, 
+			`create_by`, 
+			`update_at`, 
+			`update_by`
+		)
+		values
+		(
+			#{userId}, 
+			#{name}, 
+			#{photo}, 
+			#{sex}, 
+			#{height}, 
+			#{birthday}, 
+			#{state}, 
+			NOW(),
+			#{createBy}, 
+			NOW(),
+			#{updateBy}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.monitor.entity.UserChildren">
+		update user_children 
+		<set>
+			<if test="userId != null">`user_id` = #{userId}, </if>
+			<if test="name != null">`name` = #{name}, </if>
+			<if test="photo != null">`photo` = #{photo}, </if>
+			<if test="sex != null">`sex` = #{sex}, </if>
+			<if test="height != null">`height` = #{height}, </if>
+			<if test="birthday != null">`birthday` = #{birthday}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy}</if>
+			`update_at` = NOW()
+		</set>
+		where children_id = #{childrenId}
+	</update>
+	
+	<delete id="delete">
+		delete from user_children where children_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from user_children where children_id in 
+		<foreach item="childrenId" collection="array" open="(" separator="," close=")">
+			#{childrenId}
+		</foreach>
+	</delete>
+
+</mapper>

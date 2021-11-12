@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.classroom.dao.LiveRoomDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.classroom.entity.LiveRoom" id="liveRoomMap">
+        <result property="liveId" column="live_id"/>
+        <result property="title" column="title"/>
+        <result property="spaceId" column="space_id"/>
+        <result property="liveTypeCode" column="live_type_code"/>
+        <result property="content" column="content"/>
+        <result property="roomId" column="room_id"/>
+        <result property="featuredImage" column="featured_image"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+        <result property="createBy" column="create_by"/>
+    </resultMap>
+
+    <sql id="field">
+		lr.live_id,
+		lr.title,
+		lr.space_id,
+		lr.live_type_code,
+		lr.content,
+		lr.room_id,
+		lr.state,
+		lr.create_at,
+		lr.create_by
+	</sql>
+
+	<select id="get" resultType="xin.xiaoer.modules.classroom.entity.LiveRoom">
+		select * from live_room where live_id = #{liveId}
+	</select>
+
+	<select id="getUserPauseLive" resultType="xin.xiaoer.modules.classroom.entity.LiveRoom">
+		select lr.*,
+			IF(follow.user_id, TRUE , FALSE ) AS follow_yn
+		from live_room lr
+		left join (select * from follow where user_id = #{userId}) follow
+		on follow.follow_id = lr.create_by
+		where lr.create_by = #{userId}
+		and lr.state = '1'
+		limit 1
+	</select>
+
+	<select id="getDetail" resultType="xin.xiaoer.modules.classroom.entity.LiveRoom">
+		select <include refid="field" />,
+		featured_image,
+		follow_yn,
+		sfile.url as avatar,
+		nickname
+		from(
+		select <include refid="field" />,
+		sfile.url as featured_image,
+		IF(follow.user_id, TRUE , FALSE ) AS follow_yn,
+		su.avatar,
+		su.nickname
+		from live_room lr
+		left join (select * from follow where user_id = #{userId}) follow
+		on follow.follow_id = lr.create_by
+		left join sys_file sfile
+		on sfile.upload_id = lr.featured_image
+		left join sys_user su
+		on su.user_id = lr.create_by
+		where lr.live_id = #{liveId})lr
+		left join sys_file sfile
+		on sfile.upload_id = lr.avatar
+	</select>
+
+	<select id="getListItemObject" resultType="xin.xiaoer.modules.mobile.entity.LiveRoomListItem">
+		select lr.*,
+		file.url as featured_image
+		<include refid="api_from_where" />
+	</select>
+
+	<select id="getFeaturedList" resultType="xin.xiaoer.modules.mobile.entity.LiveRoomListItem">
+			SELECT
+		lr.live_id,lr.title,lr.featured_image,lr.last_live_at,lru.online_count,su.avatar,su.nickname as create_user
+		FROM
+		`live_room` lr
+		LEFT JOIN (
+		SELECT
+		`live_id`,
+		count(*) AS `online_count`
+		FROM
+		`live_room_user`
+		GROUP BY
+		`live_id`
+		) lru ON lr.live_id = lru.live_id
+		LEFT JOIN sys_user su ON lr.create_by = su.user_id
+		LEFT JOIN category cat on lr.live_type_code = cat.category_code
+		where lr.state= '1' and lr.space_id=#{spaceId}
+		<if test="categoryCode != null and categoryCode != ''">
+			and (lr.live_type_code = #{categoryCode} or cat.upper_code = #{categoryCode})
+		</if>
+		ORDER BY lru.online_count DESC
+		<if test="limit != null and limit != ''">
+			limit ${limit}
+		</if>
+	</select>
+
+	<select id="getAPIList" resultType="xin.xiaoer.modules.mobile.entity.LiveRoomListItem">
+		select lr.*,
+			file.url as featured_image,
+		IF(follow.user_id, TRUE , FALSE ) AS follow_yn
+		<include refid="api_from_where" />
+		order by lr.create_at desc
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+
+	<select id="getAPICount" resultType="int">
+		select count(*)
+		<include refid="api_from_where" />
+	</select>
+
+	<!-- 搜索数据区域 -->
+	<sql id="api_from_where">
+		from (select lr.live_id,
+				lr.room_id,
+				lr.title,
+				lr.space_id,
+				lr.content,
+				lr.featured_image as image_id,
+				lr.create_at,
+				lr.create_by,
+				lr.last_live_at,
+				su.nickname as create_user,
+				su.avatar
+			from live_room lr, sys_user su, category cat
+			where lr.create_by = su.user_id
+			and lr.live_type_code = cat.category_code
+			<if test="categoryCode != null and categoryCode != ''">
+				and (lr.live_type_code = #{categoryCode} or cat.upper_code = #{categoryCode})
+			</if>
+			<if test="liveId != null and liveId != ''"> and lr.live_id = #{liveId} </if>
+			and lr.state = '1') as lr
+		left join (select *
+			from sys_file
+			group by upload_id) file
+		on file.upload_id = lr.image_id
+		left join (select * from follow where user_id = #{userId}) follow
+		on follow.follow_id = lr.create_by
+	</sql>
+
+	<select id="getList" resultType="xin.xiaoer.modules.classroom.entity.LiveRoom">
+		select t.*, su.nickname as create_user, lType.category_name as live_type_name
+		from (select t.*,
+				fFile.url as featured_url,
+		        sp.space_name
+			from live_room t
+			left join space sp
+			  on sp.space_id = t.space_id
+			left join (select * from sys_file group by upload_id ) fFile
+			on fFile.upload_id = t.featured_image) t, sys_user su, category lType
+		<include refid="where_clause" />
+		and t.create_by = su.user_id
+		and lType.category_code = t.live_type_code
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by live_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from (select t.*,
+				fFile.url as featured_url
+			from live_room t
+			left join (select * from sys_file group by upload_id ) fFile
+			on fFile.upload_id = t.featured_image) t, sys_user su, category lType
+		<include refid="where_clause" />
+		and t.create_by = su.user_id
+		and lType.category_code = t.live_type_code
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="liveId != null and liveId != ''"> and t.live_id = #{liveId} </if>
+    		<if test="liveIdVague != null and liveIdVague != ''"> and t.live_id like concat('%',#{liveIdVague},'%') </if>
+            <if test="title != null and title != ''"> and t.title = #{title} </if>
+    		<if test="titleVague != null and titleVague != ''"> and t.title like concat('%',#{titleVague},'%') </if>
+            <if test="liveTypeCode != null and liveTypeCode != ''"> and t.live_type_code = #{liveTypeCode} </if>
+    		<if test="liveTypeCodeVague != null and liveTypeCodeVague != ''"> and t.live_type_code like concat('%',#{liveTypeCodeVague},'%') </if>
+            <if test="roomId != null and roomId != ''"> and t.room_id = #{roomId} </if>
+    		<if test="roomIdVague != null and roomIdVague != ''"> and t.room_id like concat('%',#{roomIdVague},'%') </if>
+            <if test="featuredImage != null and featuredImage != ''"> and t.featured_image = #{featuredImage} </if>
+    		<if test="featuredImageVague != null and featuredImageVague != ''"> and t.featured_image like concat('%',#{featuredImageVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+    		<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+            <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+    		<if test="createByVague != null and createByVague != ''"> and t.create_by like concat('%',#{createByVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.classroom.entity.LiveRoom" useGeneratedKeys="true" keyProperty="liveId">
+		insert into live_room
+		(
+			`title`, 
+			`space_id`,
+			`live_type_code`,
+			`content`,
+			`room_id`,
+			`featured_image`, 
+			`state`, 
+			`create_at`, 
+			`create_by`
+		)
+		values
+		(
+			#{title}, 
+			#{spaceId},
+			#{liveTypeCode},
+			#{content},
+			#{roomId},
+			#{featuredImage}, 
+			#{state}, 
+			NOW(),
+			#{createBy}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.classroom.entity.LiveRoom">
+		update live_room 
+		<set>
+			<if test="title != null">`title` = #{title}, </if>
+			<if test="spaceId != null">`space_id` = #{spaceId}, </if>
+			<if test="liveTypeCode != null">`live_type_code` = #{liveTypeCode}, </if>
+			<if test="content != null">`content` = #{content}, </if>
+			<if test="roomId != null">`room_id` = #{roomId}, </if>
+			<if test="featuredImage != null">`featured_image` = #{featuredImage}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			/*改动*/
+			<if test="createAt != null">`create_at` = #{createAt}, </if>
+			<if test="createBy != null">`create_by` = #{createBy},</if>
+			<if test="lastLiveAt != null">`last_live_at` = NOW()</if>
+		</set>
+		where live_id = #{liveId}
+	</update>
+	
+	<delete id="delete">
+		delete from live_room where live_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from live_room where live_id in 
+		<foreach item="liveId" collection="array" open="(" separator="," close=")">
+			#{liveId}
+		</foreach>
+	</delete>
+
+</mapper>

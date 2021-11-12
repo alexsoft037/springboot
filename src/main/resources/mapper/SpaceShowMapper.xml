@@ -1,0 +1,561 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.spaceshow.dao.SpaceShowDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.spaceshow.entity.SpaceShow" id="spaceShowMap">
+        <result property="showId" column="show_id"/>
+        <result property="spaceId" column="space_id"/>
+        <result property="showTypeCode" column="show_type_code"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="image" column="image"/>
+        <result property="video" column="video"/>
+        <result property="address" column="address"/>
+        <result property="latitude" column="latitude"/>
+        <result property="longitude" column="longitude"/>
+        <result property="featuredYn" column="featured_yn"/>
+        <result property="readCount" column="read_count"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateAt" column="update_at"/>
+        <result property="updateBy" column="update_by"/>
+    </resultMap>
+
+    <select id="get" resultType="xin.xiaoer.modules.spaceshow.entity.SpaceShow">
+		select * from space_show where show_id = #{value}
+	</select>
+
+    <sql id="selectSpaceShow">
+		select sho.*,
+				review.review_count,
+				cLike.like_count,
+				cShare.share_count,
+				(if(review.review_count, review.review_count, 0) + if(cLike.like_count, cLike.like_count, 0) + if(cShare.share_count, cShare.share_count, 0)) as rlsCount
+			from space_show sho
+			left join (select count(*) as review_count,
+					article_id
+				from review where article_type_code = 'AT0010' group by article_id) as review
+			on review.article_id = sho.show_id
+			left join (select count(*) as like_count,
+					article_id
+				from `like` where article_type_code = 'AT0010' group by article_id) as cLike
+			on cLike.article_id = sho.show_id
+			left join (select count(*) as share_count,
+					article_id
+				from share where article_type_code = 'AT0010' group by article_id) as cShare
+			on cShare.article_id = sho.show_id
+	</sql>
+
+    <select id="getActivityShowList" resultType="xin.xiaoer.modules.spaceshow.entity.SpaceShow">
+        select t.*,
+        su.nickname as create_user,
+        su.avatar
+        from (<include refid="selectSpaceShow" />) t, activity_show sh, activity act, sys_user su
+        where t.show_type_code = 'SHT002'
+        and t.show_id = sh.show_id
+        and t.state = '1'
+        and act.state = '1'
+        and act.activity_id = sh.activity_id
+        and su.user_id = t.create_by
+        <if test="spaceId != null and spaceId != ''"> and t.space_id = #{spaceId} </if>
+        <if test="city != null and cityId != ''"> and t.city = #{city} </if>
+        <if test="activityId != null and activityId != ''"> and act.activity_id = #{activityId} </if>
+        <if test="searchTitle != null and searchTitle != ''"> and act.title like concat('%',#{searchTitle},'%') </if>
+        <if test="searchFrom != null and searchFrom != ''">
+            and DATE_FORMAT(act.period_from, '%Y-%m-%d') <![CDATA[>=]]> DATE_FORMAT(#{searchFrom}, '%Y-%m-%d')
+        </if>
+        <if test="searchTo != null and searchTo != ''">
+            and DATE_FORMAT(act.period_to, '%Y-%m-%d') <![CDATA[<=]]> DATE_FORMAT(#{searchTo}, '%Y-%m-%d')
+        </if>
+        <if test="searchTypeCode != null and searchTypeCode != ''"> and act.activity_type_code = #{searchTypeCode} </if>
+        <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+        <if test="createUser != null and createUsr != ''"> and su.nickname = #{createUser} </if>
+        order by t.rlsCount desc, t.create_at desc
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+
+        /*?*/
+        <!--SELECT *
+        FROM space_show ss
+        LEFT JOIN
+        (SELECT sp.space_id
+        FROM space sp
+        WHERE sp.state = '1'
+        <if test="city != null and city != ''"> and sp.city = #{city} </if>) sid
+        ON ss.space_id = sid.space_id
+        WHERE ss.space_id = sid.space_id-->
+    </select>
+
+    <select id="getreviewList" resultType="Map">
+        SELECT
+        su.nickname,
+        su.avatar,
+        sh.*, r.*, IFNULL(l.like_count, 0) AS like_count
+        FROM
+        space_show sh
+        LEFT JOIN review re ON re.article_id = sh.show_id
+        LEFT JOIN (
+        SELECT
+        l.article_id,
+        COUNT(*) AS like_count
+        FROM
+        `like` l
+        WHERE
+        l.article_type_code = 'AT0010'
+        GROUP BY
+        l.article_id
+        ) l ON l.article_id = sh.show_id
+        LEFT JOIN (
+        SELECT
+        r.article_id,
+        r.create_at AS review_at,
+        COUNT(*) AS review_count
+        FROM
+        review r
+        WHERE
+        r.article_type_code = 'AT0010'
+        GROUP BY
+        r.article_id
+        ) r ON r.article_id = sh.show_id
+        LEFT JOIN sys_user su ON sh.create_by = su.user_id
+        WHERE
+        re.article_type_code = 'AT0010'
+        AND re.user_id = #{userId}
+        GROUP BY
+        sh.show_id
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <when test="sort == 'desc'">
+                order by review_at desc
+            </when>
+            <when test="sort == 'asc'">
+                order by review_at asc
+            </when>
+        </choose>
+        <if test="offset !=null and limit !=null">
+            limit #{offset},#{limit}
+        </if>
+	</select>
+
+    <select id="getreviewcount" resultType="int">
+        SELECT COUNT(aa.show_id)
+        FROM
+        (SELECT sh.*,COUNT(re.user_id) AS countreview
+        FROM space_show sh
+        LEFT JOIN review re
+        ON sh.show_id = re.article_id
+        WHERE re.user_id = #{userId}
+        AND re.article_type_code = 'AT0010'
+        GROUP BY sh.show_id
+        ORDER BY sh.create_at DESC) aa
+    </select>
+
+    <select id="getlikeList" resultType="Map">
+        SELECT
+        su.nickname,su.avatar,
+        ss.*,l.*,IFNULL(r.review_count,0)  AS review_count
+        FROM
+        space_show ss
+        LEFT JOIN `like` lk ON lk.article_id = ss.show_id
+        LEFT JOIN (
+        SELECT
+        l.article_id,l.create_at AS like_at,
+        COUNT(*) AS like_count
+        FROM
+        `like` l
+        WHERE l.article_type_code = 'AT0010'
+        GROUP BY
+        l.article_id
+        ) l ON l.article_id = ss.show_id
+        LEFT JOIN (
+        SELECT
+        r.article_id,r.article_type_code,
+        COUNT(*) AS review_count
+        FROM
+        review r
+        WHERE r.article_type_code = 'AT0010'
+        GROUP BY
+        r.article_id
+        ) r ON r.article_id = ss.show_id
+        LEFT JOIN sys_user su
+        ON ss.create_by = su.user_id
+        WHERE
+        lk.article_type_code = 'AT0010'
+        AND lk.user_id = #{userId}
+        GROUP BY ss.show_id
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <when test="sort == 'desc'">
+                order by like_at desc
+            </when>
+            <when test="sort == 'asc'">
+                order by like_at asc
+            </when>
+        </choose>
+        <if test="offset !=null and limit !=null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+
+    <select id="getlikeCount" resultType="int">
+        SELECT COUNT(aa.show_id)
+        FROM
+        (SELECT sh.*,COUNT(`like`.user_id) AS countreview
+        FROM space_show sh
+        LEFT JOIN `like`
+        ON sh.show_id = `like`.article_id
+        WHERE `like`.user_id = #{userId}
+        AND `like`.article_type_code = 'AT0010'
+        GROUP BY sh.show_id) aa
+    </select>
+
+
+
+    <select id="getSpaceShowByUser" resultType="Map">
+        SELECT
+        su.nickname,
+        su.avatar,
+        ss.*, IFNULL(l.like_count, 0) AS like_count,
+        IFNULL(r.review_count, 0) AS review_count
+        FROM
+        space_show ss
+        LEFT JOIN (
+        SELECT
+        l.article_id,
+        COUNT(*) AS like_count
+        FROM
+        `like` l
+        WHERE
+        l.article_type_code = 'AT0010'
+        GROUP BY
+        l.article_id
+        ) l ON l.article_id = ss.show_id
+        LEFT JOIN (
+        SELECT
+        r.article_id,
+        r.article_type_code,
+        COUNT(*) AS review_count
+        FROM
+        review r
+        WHERE
+        r.article_type_code = 'AT0010'
+        GROUP BY
+        r.article_id
+        ) r ON r.article_id = ss.show_id
+        LEFT JOIN sys_user su ON ss.create_by = su.user_id
+        WHERE
+        ss.create_by = #{userId}
+        AND ss.show_type_code = 'SHT001'
+        GROUP BY
+        ss.show_id
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <when test="sort == 'desc'">
+                order by create_at desc
+            </when>
+            <when test="sort == 'asc'">
+                order by create_at asc
+            </when>
+        </choose>
+        <if test="offset !=null and limit !=null">
+            limit #{offset},#{limit}
+        </if>
+	</select>
+
+    <select id="getMyShowByUser" resultType="Map">
+        SELECT
+        su.nickname,
+        su.avatar,
+        ss.*, IFNULL(l.like_count, 0) AS like_count,
+        IFNULL(r.review_count, 0) AS review_count
+        FROM
+        space_show ss
+        LEFT JOIN (
+        SELECT
+        l.article_id,
+        COUNT(*) AS like_count
+        FROM
+        `like` l
+        WHERE
+        l.article_type_code = 'AT0010'
+        GROUP BY
+        l.article_id
+        ) l ON l.article_id = ss.show_id
+        LEFT JOIN (
+        SELECT
+        r.article_id,
+        r.article_type_code,
+        COUNT(*) AS review_count
+        FROM
+        review r
+        WHERE
+        r.article_type_code = 'AT0010'
+        GROUP BY
+        r.article_id
+        ) r ON r.article_id = ss.show_id
+        LEFT JOIN sys_user su ON ss.create_by = su.user_id
+        WHERE
+        ss.create_by = #{userId}
+        AND ss.show_type_code = 'SHT002'
+        GROUP BY
+        ss.show_id
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <when test="sort == 'desc'">
+                order by create_at desc
+            </when>
+            <when test="sort == 'asc'">
+                order by create_at asc
+            </when>
+        </choose>
+        <if test="offset !=null and limit !=null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+
+    <select id="getShowCount" resultType="int">
+		SELECT COUNT(t.show_id)
+		FROM
+		(SELECT *
+		FROM space_show ss
+		WHERE ss.create_by = #{userId}
+		AND ss.show_type_code = 'SHT001') t
+	</select>
+
+    <select id="getMyShowCount" resultType="int">
+        SELECT COUNT(t.show_id)
+        FROM
+        (SELECT *
+        FROM space_show ss
+        WHERE ss.create_by = #{userId}
+        AND ss.show_type_code = 'SHT002') t
+    </select>
+
+    <select id="getActivityShowCount" resultType="int">
+        select count(*) from (<include refid="selectSpaceShow" />) t, activity_show sh, activity act, sys_user su
+        where t.show_type_code = 'SHT002'
+        and t.show_id = sh.show_id
+        and t.state = '1'
+        and act.state = '1'
+        and act.activity_id = sh.activity_id
+        and su.user_id = t.create_by
+        <if test="spaceId != null and spaceId != ''"> and t.space_id = #{spaceId} </if>
+        <if test="activityId != null and activityId != ''"> and act.activity_id = #{activityId} </if>
+        <if test="searchTitle != null and searchTitle != ''"> and act.title like concat('%',#{searchTitle},'%') </if>
+        <if test="searchFrom != null and searchFrom != ''">
+            and DATE_FORMAT(act.period_from, '%Y-%m-%d') <![CDATA[>=]]> DATE_FORMAT(#{searchFrom}, '%Y-%m-%d')
+        </if>
+        <if test="searchTo != null and searchTo != ''">
+            and DATE_FORMAT(act.period_to, '%Y-%m-%d') <![CDATA[<=]]> DATE_FORMAT(#{searchTo}, '%Y-%m-%d')
+        </if>
+        <if test="searchTypeCode != null and searchTypeCode != ''"> and act.activity_type_code = #{searchTypeCode} </if>
+        <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+    </select>
+
+    <select id="getRecentList" resultType="xin.xiaoer.modules.spaceshow.entity.SpaceShow">
+        select t.*,
+        su.nickname as create_user,
+        su.avatar
+        from space_show t, sys_user su
+        where t.show_type_code = 'SHT001'
+        and t.state = '1'
+        and t.create_by = su.user_id
+        <if test="spaceId != null and spaceId != ''"> and t.space_id = #{spaceId} </if>
+        <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+        <if test="createUser != null and createUsr != ''"> and su.nickname = #{createUser} </if>
+        order by t.create_at desc
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="getRecentCount" resultType="int">
+        select count(*)
+        from space_show t, sys_user su
+        where t.show_type_code = 'SHT001'
+        and t.state = '1'
+        and t.create_by = su.user_id
+        <if test="spaceId != null and spaceId != ''"> and t.space_id = #{spaceId} </if>
+        <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+    </select>
+
+    <select id="getPopularList" resultType="xin.xiaoer.modules.spaceshow.entity.SpaceShow">
+        select t.*,
+        su.nickname as create_user,
+        su.avatar
+        from (<include refid="selectSpaceShow" />) t, sys_user su
+        where t.show_type_code = 'SHT001'
+        and t.state = '1'
+        and t.create_by = su.user_id
+        <if test="spaceId != null and spaceId != ''"> and t.space_id = #{spaceId} </if>
+        <if test="createUser != null and createUsr != ''"> and su.nickname = #{createUser} </if>
+        order by t.rlsCount desc, t.create_at desc
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="getPopularCount" resultType="int">
+        select count(*)
+        from (<include refid="selectSpaceShow" />) t, sys_user su
+        where t.show_type_code = 'SHT001'
+        and t.state = '1'
+        and t.create_by = su.user_id
+        <if test="spaceId != null and spaceId != ''"> and t.space_id = #{spaceId} </if>
+    </select>
+
+    <select id="getList" resultType="xin.xiaoer.modules.spaceshow.entity.SpaceShow">
+        select * from (select t.*,
+        IF(su.nickname is null or su.nickname = '', su.phone_no, su.nickname) AS create_user,
+        sp.space_name
+        from space_show t
+        left join sys_user su
+        on su.user_id = t.create_by
+        left join space sp
+        on sp.space_id = t.space_id) t
+        <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by show_id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="getCount" resultType="int">
+        select count(*) from space_show t
+        <include refid="where_clause" />
+    </select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="showId != null and showId != ''"> and t.show_id = #{showId} </if>
+            <if test="showIdVague != null and showIdVague != ''"> and t.show_id like concat('%',#{showIdVague},'%') </if>
+            <if test="spaceId != null and spaceId != ''"> and t.space_id = #{spaceId} </if>
+            <if test="spaceIdVague != null and spaceIdVague != ''"> and t.space_id like concat('%',#{spaceIdVague},'%') </if>
+            <if test="showTypeCode != null and showTypeCode != ''"> and t.show_type_code = #{showTypeCode} </if>
+            <if test="showTypeCodeVague != null and showTypeCodeVague != ''"> and t.show_type_code like concat('%',#{showTypeCodeVague},'%') </if>
+            <if test="title != null and title != ''"> and t.title = #{title} </if>
+            <if test="titleVague != null and titleVague != ''"> and t.title like concat('%',#{titleVague},'%') </if>
+            <if test="content != null and content != ''"> and t.content = #{content} </if>
+            <if test="contentVague != null and contentVague != ''"> and t.content like concat('%',#{contentVague},'%') </if>
+            <if test="image != null and image != ''"> and t.image = #{image} </if>
+            <if test="imageVague != null and imageVague != ''"> and t.image like concat('%',#{imageVague},'%') </if>
+            <if test="video != null and video != ''"> and t.video = #{video} </if>
+            <if test="videoVague != null and videoVague != ''"> and t.video like concat('%',#{videoVague},'%') </if>
+            <if test="address != null and address != ''"> and t.address = #{address} </if>
+            <if test="addressVague != null and addressVague != ''"> and t.address like concat('%',#{addressVague},'%') </if>
+            <if test="latitude != null and latitude != ''"> and t.latitude = #{latitude} </if>
+            <if test="latitudeVague != null and latitudeVague != ''"> and t.latitude like concat('%',#{latitudeVague},'%') </if>
+            <if test="longitude != null and longitude != ''"> and t.longitude = #{longitude} </if>
+            <if test="longitudeVague != null and longitudeVague != ''"> and t.longitude like concat('%',#{longitudeVague},'%') </if>
+            <if test="featuredYn != null and featuredYn != ''"> and t.featured_yn = #{featuredYn} </if>
+            <if test="featuredYnVague != null and featuredYnVague != ''"> and t.featured_yn like concat('%',#{featuredYnVague},'%') </if>
+            <if test="readCount != null and readCount != ''"> and t.read_count = #{readCount} </if>
+            <if test="readCountVague != null and readCountVague != ''"> and t.read_count like concat('%',#{readCountVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+            <if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+            <if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+            <if test="createBy != null and createBy != ''"> and t.create_by = #{userId} </if>
+            <if test="createByVague != null and createByVague != ''"> and t.create_by like concat('%',#{createByVague},'%') </if>
+            <if test="updateAt != null and updateAt != ''"> and t.update_at = #{updateAt} </if>
+            <if test="updateAtVague != null and updateAtVague != ''"> and t.update_at like concat('%',#{updateAtVague},'%') </if>
+            <if test="updateBy != null and updateBy != ''"> and t.update_by = #{updateBy} </if>
+            <if test="updateByVague != null and updateByVague != ''"> and t.update_by like concat('%',#{updateByVague},'%') </if>
+        </where>
+    </sql>
+
+    <insert id="save" parameterType="xin.xiaoer.modules.spaceshow.entity.SpaceShow" useGeneratedKeys="true" keyProperty="showId">
+		insert into space_show
+		(
+			`space_id`, 
+			`show_type_code`, 
+			`title`, 
+			`content`, 
+			`image`, 
+			`video`, 
+			`address`, 
+			`latitude`, 
+			`longitude`, 
+			`featured_yn`, 
+			`read_count`, 
+			`state`, 
+			`create_at`, 
+			`create_by`, 
+			`update_at`, 
+			`update_by`
+		)
+		values
+		(
+			#{spaceId}, 
+			#{showTypeCode}, 
+			#{title}, 
+			#{content}, 
+			#{image}, 
+			#{video}, 
+			#{address}, 
+			#{latitude}, 
+			#{longitude}, 
+			#{featuredYn}, 
+			#{readCount}, 
+			#{state}, 
+			NOW(),
+			#{createBy}, 
+			NOW(),
+			#{updateBy}
+		)
+	</insert>
+
+    <update id="update" parameterType="xin.xiaoer.modules.spaceshow.entity.SpaceShow">
+        update space_show
+        <set>
+            <if test="spaceId != null">`space_id` = #{spaceId}, </if>
+            <if test="showTypeCode != null">`show_type_code` = #{showTypeCode}, </if>
+            <if test="title != null">`title` = #{title}, </if>
+            <if test="content != null">`content` = #{content}, </if>
+            <if test="image != null">`image` = #{image}, </if>
+            <if test="video != null">`video` = #{video}, </if>
+            <if test="address != null">`address` = #{address}, </if>
+            <if test="latitude != null">`latitude` = #{latitude}, </if>
+            <if test="longitude != null">`longitude` = #{longitude}, </if>
+            <if test="featuredYn != null">`featured_yn` = #{featuredYn}, </if>
+            <if test="readCount != null">`read_count` = #{readCount}, </if>
+            <if test="state != null">`state` = #{state}, </if>
+            <if test="updateBy != null">`update_by` = #{updateBy},</if>
+            `update_at` = NOW()
+        </set>
+        where show_id = #{showId}
+    </update>
+
+    <delete id="delete">
+		delete from space_show where show_id = #{value}
+	</delete>
+
+    <delete id="deleteBatch">
+        delete from space_show where show_id in
+        <foreach item="showId" collection="array" open="(" separator="," close=")">
+            #{showId}
+        </foreach>
+    </delete>
+
+</mapper>

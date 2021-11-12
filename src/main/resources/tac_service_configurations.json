@@ -1,0 +1,51 @@
+{
+    "version": "2.0.0",
+    "warning": "请不要修改这个文件中的内容",
+    "project": {
+        "projectId": 105270
+    },
+    "application": {
+        "appId": 104706,
+        "platform": "",
+        "packageId": "com.xiaoer"
+    },
+    "services": {
+        "analytics": {
+            "appKey": "Aqcloud104706",
+            "enable": true,
+            "appId": "104706",
+            "strategy": 1,
+            "minBatchReportCount": "30",
+            "sendPeriodMillis": 10800000,
+            "smartReporting": false,
+            "sessionTimeoutMillis": 30000,
+            "autoTrackPageEvents": true,
+            "multiProcess": true
+        },
+        "messaging": {
+            "appId": "2100313373",
+            "appKey": "A11U61YW9BSK",
+            "huaweiAppId": "",
+            "xiaomiAppId": "",
+            "xiaomiAppKey": "",
+            "meizuAppId": "",
+            "meizuAppKey": "",
+            "autoStart": true
+        },
+        "crash": {
+            "appId": "098cde933f",
+            "enable": true,
+            "consolelogEnable": false,
+            "reportDelay": 1000,
+            "nativeCrash": true,
+            "ANRCrash": true
+        },
+        "payment": {
+            "offerId": "TC104706"
+        },
+        "storage": {
+            "bucket": "tac-pshaoer-st-1251128840",
+            "region": "ap-chengdu"
+        }
+    }
+}

@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.space.dao.SpaceDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.space.entity.Space" id="spaceMap">
+        <result property="spaceId" column="space_id"/>
+        <result property="spaceName" column="space_name"/>
+        <result property="description" column="description"/>
+        <result property="level" column="level"/>
+        <result property="upperId" column="upper_id"/>
+        <result property="address" column="address"/>
+        <result property="district" column="district"/>
+        <result property="city" column="city"/>
+        <result property="province" column="province"/>
+        <result property="street" column="street"/>
+        <result property="streetNumber" column="street_number"/>
+        <result property="latitude" column="latitude"/>
+        <result property="longitude" column="longitude"/>
+        <result property="area" column="area"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateAt" column="update_at"/>
+        <result property="updateBy" column="update_by"/>
+    </resultMap>
+
+    <select id="get" resultType="xin.xiaoer.modules.space.entity.Space">
+		select * from space where space_id = #{value}
+	</select>
+
+    <select id="getCodeValues" resultType="xin.xiaoer.entity.CodeValue">
+		select t.space_id AS `code`,
+			t.space_name AS `value`
+		FROM space t
+		ORDER BY t.space_id ASC
+	</select>
+
+    <select id="getByAddress" resultType="xin.xiaoer.modules.space.entity.Space">
+        select t.* from space t
+        where t.state = '1'
+        <if test="province != null and province != ''">and t.province like concat('%',#{province},'%')</if>
+        <if test="city != null and city != ''">and t.city like concat('%',#{city},'%')</if>
+        <if test="district != null and district != ''">and t.district like concat('%',#{district},'%')</if>
+        <if test="street != null and street != ''">and t.street like concat('%',#{street},'%')</if>
+        <if test="streetNumber != null and streetNumber != ''">and t.street_number like
+            concat('%',#{streetNumber},'%')
+        </if>
+    </select>
+
+    <select id="getList" resultType="xin.xiaoer.modules.space.entity.Space">
+        select * from space t
+        <include refid="where_clause"/>
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by space_id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="getSpaceList" resultType="xin.xiaoer.modules.space.entity.Space">
+        select *
+        from space t
+        WHERE 1=1
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by space_id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="getCount" resultType="int">
+        select count(*) from space t
+        <include refid="where_clause"/>
+    </select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="spaceId != null and spaceId != ''">and t.space_id = #{spaceId}</if>
+            <if test="spaceIdVague != null and spaceIdVague != ''">and t.space_id like concat('%',#{spaceIdVague},'%')
+            </if>
+            <if test="spaceName != null and spaceName != ''">and t.space_name = #{spaceName}</if>
+            <if test="spaceNameVague != null and spaceNameVague != ''">and t.space_name like
+                concat('%',#{spaceNameVague},'%')
+            </if>
+            <if test="description != null and description != ''">and t.description = #{description}</if>
+            <if test="descriptionVague != null and descriptionVague != ''">and t.description like
+                concat('%',#{descriptionVague},'%')
+            </if>
+            <if test="level != null and level != ''">and t.level = #{level}</if>
+            <if test="levelVague != null and levelVague != ''">and t.level like concat('%',#{levelVague},'%')</if>
+            <if test="upperId != null and upperId != ''">and t.upper_id = #{upperId}</if>
+            <if test="upperIdVague != null and upperIdVague != ''">and t.upper_id like concat('%',#{upperIdVague},'%')
+            </if>
+            <if test="address != null and address != ''">and t.address = #{address}</if>
+            <if test="addressVague != null and addressVague != ''">and t.address like concat('%',#{addressVague},'%')
+            </if>
+            <if test="district != null and district != ''">and t.district = #{district}</if>
+            <if test="districtVague != null and districtVague != ''">and t.district like
+                concat('%',#{districtVague},'%')
+            </if>
+            <if test="city != null and city != ''">and t.city = #{city}</if>
+            <if test="cityVague != null and cityVague != ''">and t.city like concat('%',#{cityVague},'%')</if>
+            <if test="province != null and province != ''">and t.province = #{province}</if>
+            <if test="provinceVague != null and provinceVague != ''">and t.province like
+                concat('%',#{provinceVague},'%')
+            </if>
+            <if test="street != null and street != ''">and t.street = #{street}</if>
+            <if test="streetVague != null and streetVague != ''">and t.street like concat('%',#{streetVague},'%')</if>
+            <if test="streetNumber != null and streetNumber != ''">and t.street_number = #{streetNumber}</if>
+            <if test="streetNumberVague != null and streetNumberVague != ''">and t.street_number like
+                concat('%',#{streetNumberVague},'%')
+            </if>
+            <if test="latitude != null and latitude != ''">and t.latitude = #{latitude}</if>
+            <if test="latitudeVague != null and latitudeVague != ''">and t.latitude like
+                concat('%',#{latitudeVague},'%')
+            </if>
+            <if test="longitude != null and longitude != ''">and t.longitude = #{longitude}</if>
+            <if test="longitudeVague != null and longitudeVague != ''">and t.longitude like
+                concat('%',#{longitudeVague},'%')
+            </if>
+            <if test="area != null and area != ''">and t.area = #{area}</if>
+            <if test="areaVague != null and areaVague != ''">and t.area like concat('%',#{areaVague},'%')</if>
+            <if test="state != null and state != ''">and t.state = #{state}</if>
+            <if test="stateVague != null and stateVague != ''">and t.state like concat('%',#{stateVague},'%')</if>
+            <if test="createAt != null and createAt != ''">and t.create_at = #{createAt}</if>
+            <if test="createAtVague != null and createAtVague != ''">and t.create_at like
+                concat('%',#{createAtVague},'%')
+            </if>
+            <if test="createBy != null and createBy != ''">and t.create_by = #{createBy}</if>
+            <if test="createByVague != null and createByVague != ''">and t.create_by like
+                concat('%',#{createByVague},'%')
+            </if>
+            <if test="updateAt != null and updateAt != ''">and t.update_at = #{updateAt}</if>
+            <if test="updateAtVague != null and updateAtVague != ''">and t.update_at like
+                concat('%',#{updateAtVague},'%')
+            </if>
+            <if test="updateBy != null and updateBy != ''">and t.update_by = #{updateBy}</if>
+            <if test="updateByVague != null and updateByVague != ''">and t.update_by like
+                concat('%',#{updateByVague},'%')
+            </if>
+        </where>
+    </sql>
+
+    <insert id="save" parameterType="xin.xiaoer.modules.space.entity.Space" useGeneratedKeys="true"
+            keyProperty="spaceId">
+		insert into space
+		(
+			`space_name`, 
+			`description`, 
+			`level`, 
+			`upper_id`, 
+			`address`,
+			`district`,
+			`city`,
+			`province`,
+			`street`,
+			`street_number`,
+			`latitude`, 
+			`longitude`, 
+			`area`, 
+			`state`, 
+			`create_at`, 
+			`create_by`, 
+			`update_at`, 
+			`update_by`
+		)
+		values
+		(
+			#{spaceName}, 
+			#{description}, 
+			#{level}, 
+			#{upperId}, 
+			#{address},
+			#{district},
+			#{city},
+			#{province},
+			#{street},
+			#{streetNumber},
+			#{latitude}, 
+			#{longitude}, 
+			#{area}, 
+			#{state}, 
+			NOW(),
+			#{createBy}, 
+			NOW(),
+			#{updateBy}
+		)
+	</insert>
+
+    <update id="update" parameterType="xin.xiaoer.modules.space.entity.Space">
+        update space
+        <set>
+            <if test="spaceName != null">`space_name` = #{spaceName},</if>
+            <if test="description != null">`description` = #{description},</if>
+            <if test="level != null">`level` = #{level},</if>
+            <if test="upperId != null">`upper_id` = #{upperId},</if>
+            <if test="address != null">`address` = #{address},</if>
+            <if test="district != null">`district` = #{district},</if>
+            <if test="city != null">`city` = #{city},</if>
+            <if test="province != null">`province` = #{province},</if>
+            <if test="street != null">`street` = #{street},</if>
+            <if test="streetNumber != null">`street_number` = #{streetNumber},</if>
+            <if test="latitude != null">`latitude` = #{latitude},</if>
+            <if test="longitude != null">`longitude` = #{longitude},</if>
+            <if test="area != null">`area` = #{area},</if>
+            <if test="state != null">`state` = #{state},</if>
+            <if test="updateBy != null">`update_by` = #{updateBy},</if>
+            `update_at` = NOW()
+        </set>
+        where space_id = #{spaceId}
+    </update>
+
+    <delete id="delete">
+		delete from space where space_id = #{value}
+	</delete>
+
+    <delete id="deleteBatch">
+        delete from space where space_id in
+        <foreach item="spaceId" collection="array" open="(" separator="," close=")">
+            #{spaceId}
+        </foreach>
+    </delete>
+    <!--首页查询空间排名-->
+    <select id="getSpaceRank" resultType="xin.xiaoer.modules.website.entity.SpaceRankItem">
+        SELECT
+        *
+        FROM
+        (
+        SELECT
+        i.*, @curRank := @curRank + 1 AS rank
+        FROM
+        (
+        SELECT
+        s.space_id,
+        s.space_name,
+        si.space_integral,
+        si.space_id AS space_id2
+        FROM
+        space s
+        LEFT JOIN (
+        SELECT
+        i.space_id,
+        SUM(i.user_integral) AS space_integral
+        FROM
+        (
+        SELECT
+        su.user_id,
+        SUM(i.integral) AS user_integral,
+        su.space_id
+        FROM
+        sys_user su
+        LEFT JOIN integral i ON su.user_id = i.user_id
+        GROUP BY
+        su.user_id
+        ) i
+        GROUP BY
+        i.space_id
+        ) si ON si.space_id = s.space_id
+        WHERE
+        s.state = '1'
+        ORDER BY
+        si.space_integral DESC
+        ) i,
+        (SELECT @curRank := 0) q
+        WHERE
+        1 = 1
+        ) t
+        <if test="offset != null and limit != null">
+
+            LIMIT #{offset},#{limit}
+        </if>
+    </select>
+
+    <!--荣誉榜单空间积分排名-->
+    <select id="getSpaceRankAtHonorList" resultType="map">
+        SELECT
+            s.space_id as spaceId,
+            s.space_name as spaceName,
+            ta.region,
+            sc.people_count as peopleCount,
+            dc.donate_space_count as donateSpaceCount,
+            dcc.donate_count as donateCount,
+            si.space_integral as spaceIntegral
+        FROM
+            space s
+        LEFT JOIN t_area ta ON s.city = ta.area_name
+        LEFT JOIN (
+            SELECT
+                su.space_id,
+                COUNT(*) AS people_count
+            FROM
+                sys_user su
+            GROUP BY
+                su.space_id
+        ) sc ON s.space_id = sc.space_id
+        LEFT JOIN (
+            SELECT
+                ds.space_id,
+                COUNT(*) AS donate_space_count
+            FROM
+                donate_space ds
+            GROUP BY
+                ds.space_id
+        ) dc ON dc.space_id = s.space_id
+        LEFT JOIN (
+            SELECT
+                COUNT(*) AS donate_count,
+                su.space_id
+            FROM
+                donate_user du,
+                sys_user su
+            WHERE
+                su.user_id = du.user_id
+            GROUP BY
+                su.space_id
+        ) dcc ON s.space_id = dcc.space_id
+        LEFT JOIN (
+            SELECT
+                SUM(i.integral) AS space_integral,
+                su.space_id
+            FROM
+                integral i,
+                sys_user su
+            WHERE
+                i.user_id = su.user_id
+            GROUP BY
+                su.space_id
+        ) si ON s.space_id = si.space_id
+        WHERE
+        1=1
+        <if test="region != null and region != ''">
+          AND ta.region = 5
+        </if>
+        <if test="search != null and search != ''">
+            AND s.space_name LIKE concat('%',#{search},'%')
+        </if>
+        ORDER BY si.space_integral DESC
+    </select>
+
+</mapper>

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.thirdpartyconfig.dao.ThirdPartyConfigDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.thirdpartyconfig.entity.ThirdPartyConfig" id="thirdPartyConfigMap">
+        <result property="id" column="id"/>
+        <result property="tpTypeCode" column="tp_type_code"/>
+		<result property="tpTypeName" column="tp_type_name"/>
+        <result property="tpUrl" column="tp_url"/>
+        <result property="tpUser" column="tp_user"/>
+        <result property="tpPassword" column="tp_password"/>
+        <result property="tpRemark" column="tp_remark"/>
+        <result property="state" column="state"/>
+        <result property="createTime" column="create_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="updateBy" column="update_by"/>
+    </resultMap>
+
+	<select id="get" resultMap="thirdPartyConfigMap">
+		select t.*, sc.para_name as tp_type_name from third_party_config t, sys_commpara sc
+		where t.id = #{value}
+		AND sc.para_key = t.tp_type_code
+		AND sc.para_code = 'thirdPartyType'
+	</select>
+
+	<select id="getList" resultMap="thirdPartyConfigMap">
+		select t.*, sc.para_name as tp_type_name from third_party_config t, sys_commpara sc <include refid="where_clause" />
+		AND sc.para_key = t.tp_type_code
+		AND sc.para_code = 'thirdPartyType'
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by t.${sidx} ${order}
+            </when>
+			<otherwise>
+                order by t.id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from third_party_config t  <include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="id != null and id != ''"> and t.id = #{id} </if>
+    		<if test="idVague != null and idVague != ''"> and t.id like concat('%',#{idVague},'%') </if>
+            <if test="tpTypeCode != null and tpTypeCode != ''"> and t.tp_type_code = #{tpTypeCode} </if>
+    		<if test="tpTypeCodeVague != null and tpTypeCodeVague != ''"> and t.tp_type_code like concat('%',#{tpTypeCodeVague},'%') </if>
+            <if test="tpUrl != null and tpUrl != ''"> and t.tp_url = #{tpUrl} </if>
+    		<if test="tpUrlVague != null and tpUrlVague != ''"> and t.tp_url like concat('%',#{tpUrlVague},'%') </if>
+            <if test="tpUser != null and tpUser != ''"> and t.tp_user = #{tpUser} </if>
+    		<if test="tpUserVague != null and tpUserVague != ''"> and t.tp_user like concat('%',#{tpUserVague},'%') </if>
+            <if test="tpPassword != null and tpPassword != ''"> and t.tp_password = #{tpPassword} </if>
+    		<if test="tpPasswordVague != null and tpPasswordVague != ''"> and t.tp_password like concat('%',#{tpPasswordVague},'%') </if>
+            <if test="tpRemark != null and tpRemark != ''"> and t.tp_remark = #{tpRemark} </if>
+    		<if test="tpRemarkVague != null and tpRemarkVague != ''"> and t.tp_remark like concat('%',#{tpRemarkVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+    		<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createTime != null and createTime != ''"> and t.create_time = #{createTime} </if>
+    		<if test="createTimeVague != null and createTimeVague != ''"> and t.create_time like concat('%',#{createTimeVague},'%') </if>
+            <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+    		<if test="createByVague != null and createByVague != ''"> and t.create_by like concat('%',#{createByVague},'%') </if>
+            <if test="updateTime != null and updateTime != ''"> and t.update_time = #{updateTime} </if>
+    		<if test="updateTimeVague != null and updateTimeVague != ''"> and t.update_time like concat('%',#{updateTimeVague},'%') </if>
+            <if test="updateBy != null and updateBy != ''"> and t.update_by = #{updateBy} </if>
+    		<if test="updateByVague != null and updateByVague != ''"> and t.update_by like concat('%',#{updateByVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.thirdpartyconfig.entity.ThirdPartyConfig" useGeneratedKeys="true" keyProperty="id">
+		insert into third_party_config
+		(
+			`tp_type_code`,
+			`tp_url`, 
+			`tp_user`, 
+			`tp_password`, 
+			`tp_remark`, 
+			`state`, 
+			`create_time`, 
+			`create_by`, 
+			`update_time`, 
+			`update_by`
+		)
+		values
+		(
+			#{tpTypeCode},
+			#{tpUrl}, 
+			#{tpUser}, 
+			#{tpPassword}, 
+			#{tpRemark}, 
+			#{state}, 
+			DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S'),
+			#{createBy},
+			DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S'),
+			#{updateBy}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.thirdpartyconfig.entity.ThirdPartyConfig">
+		update third_party_config 
+		<set>
+			<if test="tpTypeCode != null">`tp_type_code` = #{tpTypeCode}, </if>
+			<if test="tpUrl != null">`tp_url` = #{tpUrl}, </if>
+			<if test="tpUser != null">`tp_user` = #{tpUser}, </if>
+			<if test="tpPassword != null">`tp_password` = #{tpPassword}, </if>
+			<if test="tpRemark != null">`tp_remark` = #{tpRemark}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			`update_time` = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S'),
+			<if test="updateBy != null">`update_by` = #{updateBy}</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from third_party_config where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from third_party_config where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

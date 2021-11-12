@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.dao.SpaceNewsDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.entity.SpaceNews" id="spaceNewsMap">
+        <result property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="spaceId" column="space_id"/>
+        <result property="content" column="content"/>
+        <result property="sort" column="sort"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateAt" column="update_at"/>
+        <result property="updateBy" column="update_by"/>
+    </resultMap>
+
+    <select id="get" resultType="xin.xiaoer.entity.SpaceNews">
+		select * from space_news where id = #{value}
+	</select>
+
+    <select id="getNewsList" resultType="xin.xiaoer.entity.SpaceNews">
+        select *
+        from space_news t
+        where t.state = '1'
+        <if test="spaceId != null and spaceId != ''"> and t.space_id = #{spaceId} </if>
+        order by t.sort asc
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="getnewsbylocation" resultType="Map">
+        SELECT sh.*,
+        IF (li.user_id, TRUE, FALSE) AS likeYn,
+        IFNULL(l.like_count,0) AS like_count,
+        IFNULL(r.review_count,0) AS review_count
+        FROM space_headline sh
+        LEFT JOIN
+        (SELECT sp.space_id,sp.city
+        FROM space sp
+        WHERE sp.state = '1'
+        and sp.space_id =#{spaceId}) t
+        ON sh.space_id = t.space_id
+        LEFT JOIN (
+        SELECT
+        l.article_id,
+        IFNULL(COUNT(*),0) AS like_count
+        FROM
+        `like` l
+        WHERE l.article_type_code = 'AT0002'
+        GROUP BY
+        l.article_id
+        ) l ON l.article_id = sh.headline_id
+        LEFT JOIN (
+        SELECT
+        r.article_id,
+        IFNULL(COUNT(*),0) AS review_count
+        FROM
+        review r
+        WHERE r.article_type_code = 'AT0002'
+        GROUP BY
+        r.article_id
+        ) r ON r.article_id = sh.headline_id
+        LEFT JOIN (
+        SELECT
+        `like`.*
+        FROM
+        `like`
+        WHERE
+        `like`.article_type_code = 'AT0002'
+        AND `like`.user_id = #{userId}
+        ) li ON li.article_id = sh.headline_id
+        WHERE sh.space_id = t.space_id
+        ORDER BY
+        create_at DESC
+        <if test="offset !=null and limit !=null">
+            limit #{offset},#{limit}
+        </if>
+	</select>
+
+    <select id="getNewsCount" resultType="int">
+        SELECT COUNT(sh.headline_id)
+        FROM space_headline sh
+        LEFT JOIN
+        (SELECT sp.space_id,sp.city
+        FROM space sp
+        WHERE sp.state = '1'
+        and sp.space_id = #{spaceId}) t
+        ON sh.space_id = t.space_id
+        WHERE sh.space_id = t.space_id
+    </select>
+
+    <select id="getallspacenews" resultType="Map">
+        SELECT
+        sh.*,
+        IF (t.user_id, TRUE, FALSE) AS likeYn,
+        IFNULL(l.like_count, 0) AS like_count,
+        IFNULL(r.review_count, 0) AS review_count
+        FROM
+        space_headline sh
+        LEFT JOIN (
+        SELECT
+        l.article_id,
+        IFNULL(COUNT(*), 0) AS like_count
+        FROM
+        `like` l
+        WHERE
+        l.article_type_code = 'AT0002'
+        GROUP BY
+        l.article_id
+        ) l ON l.article_id = sh.headline_id
+        LEFT JOIN (
+        SELECT
+        r.article_id,
+        IFNULL(COUNT(*), 0) AS review_count
+        FROM
+        review r
+        WHERE
+        r.article_type_code = 'AT0002'
+        GROUP BY
+        r.article_id
+        ) r ON r.article_id = sh.headline_id
+        LEFT JOIN (
+        SELECT
+        `like`.*
+        FROM
+        `like`
+        WHERE
+        `like`.article_type_code = 'AT0002'
+        AND `like`.user_id = #{userId}
+        ) t ON t.article_id = sh.headline_id
+        ORDER BY
+        t.create_at DESC
+        <if test="offset !=null and limit !=null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+
+
+    <select id="getallnewscount" resultType="int">
+        SELECT COUNT(*) FROM space_headline
+    </select>
+
+    <select id="getreviewList" resultType="Map">
+        SELECT
+        sh.*, r.*, IFNULL(l.like_count, 0) AS like_count
+        FROM
+        space_headline sh
+        LEFT JOIN review re ON re.article_id = sh.headline_id
+        LEFT JOIN (
+        SELECT
+        l.article_id,
+        COUNT(*) AS like_count
+        FROM
+        `like` l
+        WHERE
+        l.article_type_code = 'AT0002'
+        GROUP BY
+        l.article_id
+        ) l ON l.article_id = sh.headline_id
+        LEFT JOIN (
+        SELECT
+        r.article_id,
+        r.create_at AS review_at,
+        COUNT(*) AS review_count
+        FROM
+        review r
+        WHERE
+        r.article_type_code = 'AT0002'
+        GROUP BY
+        r.article_id
+        ) r ON r.article_id = sh.headline_id
+        WHERE
+        re.article_type_code = 'AT0002'
+        AND re.user_id =#{userId}
+        GROUP BY
+        sh.headline_id
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <when test="sort == 'desc'">
+                order by review_at desc
+            </when>
+            <when test="sort == 'asc'">
+                order by review_at asc
+            </when>
+            <otherwise>
+                order by sh.headline_id desc
+            </otherwise>
+        </choose>
+        <if test="offset !=null and limit !=null">
+            limit #{offset},#{limit}
+        </if>
+    </select>
+
+    <select id="getreviewcount" resultType="int">
+        SELECT COUNT(aa.headline_id)
+        FROM
+        (SELECT sh.*,COUNT(re.user_id) AS countreview
+        FROM space_headline sh
+        LEFT JOIN review re
+        ON sh.headline_id = re.article_id
+        WHERE re.user_id = #{userId}
+        AND re.article_type_code = 'AT0002'
+        GROUP BY sh.headline_id) aa
+    </select>
+
+    <select id="getlikeList" resultType="Map">
+        SELECT
+        lk.article_type_code,
+        sh.*, l.*, IFNULL(r.review_count, 0) AS review_count
+        FROM
+        space_headline sh
+        LEFT JOIN `like` lk ON lk.article_id = sh.headline_id
+        LEFT JOIN (
+        SELECT
+        l.article_id,
+        l.create_at AS like_at,
+        COUNT(*) AS like_count
+        FROM
+        `like` l
+        WHERE
+        l.article_type_code = 'AT0002'
+        GROUP BY
+        l.article_id
+        ) l ON l.article_id = sh.headline_id
+        LEFT JOIN (
+        SELECT
+        r.article_id,
+        COUNT(*) AS review_count
+        FROM
+        review r
+        WHERE
+        r.article_type_code = 'AT0002'
+        GROUP BY
+        r.article_id
+        ) r ON r.article_id = sh.headline_id
+        WHERE
+        lk.article_type_code = 'AT0002'
+        AND lk.user_id = #{userId}
+        GROUP BY
+        sh.headline_id
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <when test="sort == 'desc'">
+                order by like_at desc
+            </when>
+            <when test="sort == 'asc'">
+                order by like_at asc
+            </when>
+        </choose>
+        <if test="offset !=null and limit !=null">
+            limit #{offset},#{limit}
+        </if>
+
+    </select>
+
+    <select id="getlikeCount" resultType="int">
+        SELECT COUNT(aa.id)
+        FROM
+        (SELECT sn.*,COUNT(`like`.user_id) AS countreview
+        FROM space_news sn
+        LEFT JOIN `like`
+        ON sn.id = `like`.article_id
+        WHERE `like`.user_id = #{userId}
+        AND `like`.article_type_code = 'AT0002'
+        GROUP BY sn.id) aa
+    </select>
+
+
+    <select id="getcollectionList" resultType="Map">
+        SELECT
+        sh.*, l.*, IFNULL(r.review_count, 0) AS review_count,
+        fa.update_at AS favourite_at
+        FROM
+        space_headline sh
+        LEFT JOIN favourite fa ON fa.article_id = sh.headline_id
+        LEFT JOIN (
+        SELECT
+        l.article_id,
+        COUNT(*) AS like_count
+        FROM
+        `like` l
+        WHERE
+        l.article_type_code = 'AT0002'
+        GROUP BY
+        l.article_id
+        ) l ON l.article_id = sh.headline_id
+        LEFT JOIN (
+        SELECT
+        r.article_id,
+        COUNT(*) AS review_count
+        FROM
+        review r
+        WHERE
+        r.article_type_code = 'AT0002'
+        GROUP BY
+        r.article_id
+        ) r ON r.article_id = sh.headline_id
+        WHERE
+        fa.article_type_code = 'AT0002'
+        AND fa.user_id = #{userId}
+        GROUP BY
+        sh.headline_id
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <when test="sort == 'desc'">
+                order by favourite_at desc
+            </when>
+            <when test="sort == 'asc'">
+                order by favourite_at asc
+            </when>
+        </choose>
+        <if test="offset !=null and limit !=null">
+            limit #{offset},#{limit}
+        </if>
+	</select>
+
+    <select id="getcollectionCount" resultType="int">
+		SELECT COUNT(f.fv_id)
+		FROM
+		(SELECT *
+		FROM favourite fa
+		WHERE fa.user_id =#{userId}
+		AND fa.article_type_code = 'AT0002') f
+	</select>
+
+    <select id="getList" resultType="xin.xiaoer.entity.SpaceNews">
+        select * from (select news.*,
+        sp.space_name
+        from space_news news
+        left join space sp
+        on sp.space_id = news.space_id) t
+        <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+            <otherwise>
+                order by id desc
+            </otherwise>
+        </choose>
+        <if test="offset != null and limit != null">
+            limit #{offset}, #{limit}
+        </if>
+    </select>
+
+    <select id="getCount" resultType="int">
+        select count(*) from (select news.*,
+        sp.space_name
+        from space_news news
+        left join space sp
+        on sp.space_id = news.space_id) t
+        <include refid="where_clause" />
+    </select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="id != null and id != ''"> and t.id = #{id} </if>
+            <if test="idVague != null and idVague != ''"> and t.id like concat('%',#{idVague},'%') </if>
+            <if test="title != null and title != ''"> and t.title = #{title} </if>
+            <if test="titleVague != null and titleVague != ''"> and t.title like concat('%',#{titleVague},'%') </if>
+            <if test="spaceId != null and spaceId != ''"> and t.space_id = #{spaceId} </if>
+            <if test="content != null and content != ''"> and t.content = #{content} </if>
+            <if test="contentVague != null and contentVague != ''"> and t.content like concat('%',#{contentVague},'%') </if>
+            <if test="sort != null and sort != ''"> and t.sort = #{sort} </if>
+            <if test="sortVague != null and sortVague != ''"> and t.sort like concat('%',#{sortVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+            <if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+            <if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+            <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+            <if test="createByVague != null and createByVague != ''"> and t.create_by like concat('%',#{createByVague},'%') </if>
+            <if test="updateAt != null and updateAt != ''"> and t.update_at = #{updateAt} </if>
+            <if test="updateAtVague != null and updateAtVague != ''"> and t.update_at like concat('%',#{updateAtVague},'%') </if>
+            <if test="updateBy != null and updateBy != ''"> and t.update_by = #{updateBy} </if>
+            <if test="updateByVague != null and updateByVague != ''"> and t.update_by like concat('%',#{updateByVague},'%') </if>
+        </where>
+    </sql>
+
+    <insert id="save" parameterType="xin.xiaoer.entity.SpaceNews" useGeneratedKeys="true" keyProperty="id">
+		insert into space_news
+		(
+			`title`, 
+			`space_id`,
+			`content`,
+			`sort`, 
+			`state`, 
+			`create_at`, 
+			`create_by`, 
+			`update_at`, 
+			`update_by`
+		)
+		values
+		(
+			#{title}, 
+			#{spaceId},
+			#{content},
+			#{sort}, 
+			#{state}, 
+			NOW(),
+			#{createBy}, 
+			NOW(),
+			#{updateBy}
+		)
+	</insert>
+
+    <update id="update" parameterType="xin.xiaoer.entity.SpaceNews">
+        update space_news
+        <set>
+            <if test="title != null">`title` = #{title}, </if>
+            <if test="spaceId != null">`space_id` = #{spaceId}, </if>
+            <if test="content != null">`content` = #{content}, </if>
+            <if test="sort != null">`sort` = #{sort}, </if>
+            <if test="state != null">`state` = #{state}, </if>
+            <if test="updateBy != null">`update_by` = #{updateBy},</if>
+            `update_at` = NOW()
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="delete">
+		delete from space_news where id = #{value}
+	</delete>
+
+    <delete id="deleteBatch">
+        delete from space_news where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

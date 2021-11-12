@@ -1,0 +1,44 @@
+{
+  "isLoading": false,
+  "status": "success",
+  "error": null,
+  "data": {
+    "result": {
+      "msg": "操作成功!",
+      "code": "200",
+      "data": [
+        {
+          "channelType": "D",
+          "end": "2018-09-14T19:19:31",
+          "type": "",
+          "begin": "2018-09-14T19:14:10"
+        },
+        {
+          "channelType": "D",
+          "end": "2018-09-14T19:32:34",
+          "type": "",
+          "begin": "2018-09-14T19:19:31"
+        },
+        {
+          "channelType": "D",
+          "end": "2018-09-14T20:01:44",
+          "type": "",
+          "begin": "2018-09-14T20:01:30"
+        },
+        {
+          "channelType": "D",
+          "end": "2018-09-14T20:08:18",
+          "type": "",
+          "begin": "2018-09-14T20:08:02"
+        },
+        {
+          "channelType": "D",
+          "end": "2018-09-14T20:09:53",
+          "type": "",
+          "begin": "2018-09-14T20:09:38"
+        }
+      ]
+    }
+  },
+  "message": "操作成功！"
+}

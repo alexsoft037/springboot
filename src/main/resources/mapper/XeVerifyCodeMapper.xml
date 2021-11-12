@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.verifycode.dao.XeVerifyCodeDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.verifycode.entity.XeVerifyCode" id="xeVerifyCodeMap">
+        <result property="id" column="id"/>
+        <result property="phone" column="phone"/>
+        <result property="code" column="code"/>
+        <result property="verifyTypeCode" column="verify_type_code"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.verifycode.entity.XeVerifyCode">
+		select * from xe_verify_code where id = #{value}
+	</select>
+
+	<select id="getVerifyCode" resultType="xin.xiaoer.modules.verifycode.entity.XeVerifyCode">
+		SELECT *
+		FROM xe_verify_code
+		WHERE phone = #{phone}
+		AND verify_type_code = #{verifyTypeCode}
+		limit 1
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.verifycode.entity.XeVerifyCode">
+		select * from xe_verify_code t <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from xe_verify_code t  <include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="id != null and id != ''"> and t.id = #{id} </if>
+    		<if test="idVague != null and idVague != ''"> and t.id like concat('%',#{idVague},'%') </if>
+            <if test="phone != null and phone != ''"> and t.phone = #{phone} </if>
+    		<if test="phoneVague != null and phoneVague != ''"> and t.phone like concat('%',#{phoneVague},'%') </if>
+            <if test="code != null and code != ''"> and t.code = #{code} </if>
+    		<if test="codeVague != null and codeVague != ''"> and t.code like concat('%',#{codeVague},'%') </if>
+            <if test="verifyTypeCode != null and verifyTypeCode != ''"> and t.verify_type_code = #{verifyTypeCode} </if>
+    		<if test="verifyTypeCodeVague != null and verifyTypeCodeVague != ''"> and t.verify_type_code like concat('%',#{verifyTypeCodeVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+    		<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.verifycode.entity.XeVerifyCode" useGeneratedKeys="true" keyProperty="id">
+		insert into xe_verify_code
+		(
+			`phone`, 
+			`code`, 
+			`verify_type_code`, 
+			`state`, 
+			`create_at`
+		)
+		values
+		(
+			#{phone}, 
+			#{code}, 
+			#{verifyTypeCode}, 
+			#{state}, 
+			DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S')
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.verifycode.entity.XeVerifyCode">
+		update xe_verify_code 
+		<set>
+			<if test="phone != null">`phone` = #{phone}, </if>
+			<if test="code != null">`code` = #{code}, </if>
+			<if test="verifyTypeCode != null">`verify_type_code` = #{verifyTypeCode}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="createAt != null">`create_at` = DATE_FORMAT(NOW(), '%Y-%m-%d %H:%i:%S')</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from xe_verify_code where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from xe_verify_code where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

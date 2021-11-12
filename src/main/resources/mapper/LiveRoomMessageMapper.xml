@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.classroom.dao.LiveRoomMessageDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.classroom.entity.LiveRoomMessage" id="liveRoomMessageMap">
+        <result property="liveId" column="live_id"/>
+        <result property="senderId" column="sender_id"/>
+        <result property="message" column="message"/>
+        <result property="sendAt" column="send_at"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.classroom.entity.LiveRoomMessage">
+		select * from live_room_message where live_id = #{value}
+	</select>
+
+	<select id="getCountByLive" resultType="int">
+		select count(*) from live_room_message t, sys_user su
+		where t.live_id = #{value}
+		and t.sender_id = su.user_id
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.classroom.entity.LiveRoomMessage">
+		select t.*,
+		su.nickname as user_name,
+		su.avatar
+		from live_room_message t, sys_user su
+		<include refid="where_clause" />
+		and t.sender_id = su.user_id
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by send_at desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from live_room_message t, sys_user su
+		<include refid="where_clause" />
+		and t.sender_id = su.user_id
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="liveId != null and liveId != ''"> and t.live_id = #{liveId} </if>
+    		<if test="liveIdVague != null and liveIdVague != ''"> and t.live_id like concat('%',#{liveIdVague},'%') </if>
+            <if test="senderId != null and senderId != ''"> and t.sender_id = #{senderId} </if>
+    		<if test="senderIdVague != null and senderIdVague != ''"> and t.sender_id like concat('%',#{senderIdVague},'%') </if>
+            <if test="message != null and message != ''"> and t.message = #{message} </if>
+    		<if test="messageVague != null and messageVague != ''"> and t.message like concat('%',#{messageVague},'%') </if>
+            <if test="sendAt != null and sendAt != ''"> and t.send_at = #{sendAt} </if>
+    		<if test="sendAtVague != null and sendAtVague != ''"> and t.send_at like concat('%',#{sendAtVague},'%') </if>
+			<if test="previousTime != null and previousTime != ''"> and t.send_at <![CDATA[>=]]> #{previousTime} </if>
+			<if test="pollingTime != null and pollingTime != ''"> and t.send_at <![CDATA[<=]]> #{pollingTime} </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.classroom.entity.LiveRoomMessage">
+		insert into live_room_message
+		(
+			`live_id`, 
+			`sender_id`, 
+			`message`, 
+			`send_at`
+		)
+		values
+		(
+			#{liveId}, 
+			#{senderId}, 
+			#{message}, 
+			NOW()
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.classroom.entity.LiveRoomMessage">
+		update live_room_message 
+		<set>
+			<if test="senderId != null">`sender_id` = #{senderId}, </if>
+			<if test="message != null">`message` = #{message}, </if>
+			`send_at` = NOW()
+		</set>
+		where live_id = #{liveId}
+	</update>
+	
+	<delete id="delete">
+		delete from live_room_message where live_id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from live_room_message where live_id in 
+		<foreach item="liveId" collection="array" open="(" separator="," close=")">
+			#{liveId}
+		</foreach>
+	</delete>
+
+</mapper>

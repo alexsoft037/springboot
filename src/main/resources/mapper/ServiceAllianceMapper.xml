@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.servicealliance.dao.ServiceAllianceDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.servicealliance.entity.ServiceAlliance" id="xeServiceAllianceMap">
+        <result property="id" column="id"/>
+        <result property="imgPath" column="img_path"/>
+        <result property="thumbId" column="thumb_id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+		<result property="url" column="url"/>
+		<result property="color" column="color"/>
+        <result property="state" column="state"/>
+        <result property="createAt" column="create_at"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateAt" column="update_at"/>
+        <result property="updateBy" column="update_by"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.servicealliance.entity.ServiceAlliance">
+		select * from xe_service_alliance where id = #{value}
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.servicealliance.entity.ServiceAlliance">
+		select * from xe_service_alliance t <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from xe_service_alliance t  <include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="id != null and id != ''"> and t.id = #{id} </if>
+    		<if test="idVague != null and idVague != ''"> and t.id like concat('%',#{idVague},'%') </if>
+            <if test="imgPath != null and imgPath != ''"> and t.img_path = #{imgPath} </if>
+    		<if test="imgPathVague != null and imgPathVague != ''"> and t.img_path like concat('%',#{imgPathVague},'%') </if>
+            <if test="thumbId != null and thumbId != ''"> and t.thumb_id = #{thumbId} </if>
+    		<if test="thumbIdVague != null and thumbIdVague != ''"> and t.thumb_id like concat('%',#{thumbIdVague},'%') </if>
+            <if test="title != null and title != ''"> and t.title = #{title} </if>
+    		<if test="titleVague != null and titleVague != ''"> and t.title like concat('%',#{titleVague},'%') </if>
+            <if test="content != null and content != ''"> and t.content = #{content} </if>
+    		<if test="contentVague != null and contentVague != ''"> and t.content like concat('%',#{contentVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+    		<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createAt != null and createAt != ''"> and t.create_at = #{createAt} </if>
+    		<if test="createAtVague != null and createAtVague != ''"> and t.create_at like concat('%',#{createAtVague},'%') </if>
+            <if test="createBy != null and createBy != ''"> and t.create_by = #{createBy} </if>
+    		<if test="createByVague != null and createByVague != ''"> and t.create_by like concat('%',#{createByVague},'%') </if>
+            <if test="updateAt != null and updateAt != ''"> and t.update_at = #{updateAt} </if>
+    		<if test="updateAtVague != null and updateAtVague != ''"> and t.update_at like concat('%',#{updateAtVague},'%') </if>
+            <if test="updateBy != null and updateBy != ''"> and t.update_by = #{updateBy} </if>
+    		<if test="updateByVague != null and updateByVague != ''"> and t.update_by like concat('%',#{updateByVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.servicealliance.entity.ServiceAlliance" useGeneratedKeys="true" keyProperty="id">
+		insert into xe_service_alliance
+		(
+			`img_path`, 
+			`thumb_id`, 
+			`title`, 
+			`content`,
+			`url`,
+			`color`,
+			`state`, 
+			`create_at`, 
+			`create_by`, 
+			`update_at`, 
+			`update_by`
+		)
+		values
+		(
+			#{imgPath}, 
+			#{thumbId}, 
+			#{title}, 
+			#{content},
+			#{url},
+			#{color},
+			#{state}, 
+			NOW(),
+			#{createBy}, 
+			NOW(),
+			#{updateBy}
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.servicealliance.entity.ServiceAlliance">
+		update xe_service_alliance 
+		<set>
+			<if test="imgPath != null">`img_path` = #{imgPath}, </if>
+			<if test="thumbId != null">`thumb_id` = #{thumbId}, </if>
+			<if test="title != null">`title` = #{title}, </if>
+			<if test="content != null">`content` = #{content}, </if>
+			<if test="url != null">`url` = #{url}, </if>
+			<if test="color != null">`color` = #{color}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="updateBy != null">`update_by` = #{updateBy},</if>
+			`update_at` = NOW()
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="delete">
+		delete from xe_service_alliance where id = #{value}
+	</delete>
+	
+	<delete id="deleteBatch">
+		delete from xe_service_alliance where id in 
+		<foreach item="id" collection="array" open="(" separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+
+</mapper>

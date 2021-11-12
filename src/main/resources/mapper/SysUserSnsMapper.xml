@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xin.xiaoer.modules.sysusersns.dao.SysUserSnsDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="xin.xiaoer.modules.sysusersns.entity.SysUserSns" id="sysUserSnsMap">
+        <result property="userId" column="user_id"/>
+		<result property="snsUserId" column="sns_user_id"/>
+        <result property="snsType" column="sns_type"/>
+        <result property="accessToken" column="access_token"/>
+        <result property="openid" column="openid"/>
+        <result property="expiresIn" column="expires_in"/>
+        <result property="refreshToken" column="refresh_token"/>
+        <result property="scope" column="scope"/>
+        <result property="unionid" column="unionid"/>
+        <result property="oauthConsumerKey" column="oauth_consumer_key"/>
+        <result property="state" column="state"/>
+		<result property="userName" column="user_name"/>
+		<result property="gender" column="gender"/>
+		<result property="avatar" column="avatar"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+	<select id="get" resultType="xin.xiaoer.modules.sysusersns.entity.SysUserSns">
+		select * from sys_user_sns where user_id = #{value}
+	</select>
+
+	<select id="getBySns" resultType="xin.xiaoer.modules.sysusersns.entity.SysUserSns">
+		select * from sys_user_sns where sns_user_id = #{snsUserId} AND sns_type = #{snsType} LIMIT 1
+	</select>
+
+	<select id="getList" resultType="xin.xiaoer.modules.sysusersns.entity.SysUserSns">
+		select * from sys_user_sns t <include refid="where_clause" />
+        <choose>
+            <when test="sidx != null and sidx.trim() != ''">
+                order by ${sidx} ${order}
+            </when>
+			<otherwise>
+                order by user_id desc
+			</otherwise>
+        </choose>
+		<if test="offset != null and limit != null">
+			limit #{offset}, #{limit}
+		</if>
+	</select>
+	
+ 	<select id="getCount" resultType="int">
+		select count(*) from sys_user_sns t  <include refid="where_clause" />
+	</select>
+
+    <!-- 搜索数据区域 -->
+    <sql id="where_clause">
+        <where>
+            1=1
+            <if test="userId != null and userId != ''"> and t.user_id = #{userId} </if>
+    		<if test="userIdVague != null and userIdVague != ''"> and t.user_id like concat('%',#{userIdVague},'%') </if>
+            <if test="snsType != null and snsType != ''"> and t.sns_type = #{snsType} </if>
+    		<if test="snsTypeVague != null and snsTypeVague != ''"> and t.sns_type like concat('%',#{snsTypeVague},'%') </if>
+            <if test="accessToken != null and accessToken != ''"> and t.access_token = #{accessToken} </if>
+    		<if test="accessTokenVague != null and accessTokenVague != ''"> and t.access_token like concat('%',#{accessTokenVague},'%') </if>
+            <if test="openid != null and openid != ''"> and t.openid = #{openid} </if>
+    		<if test="openidVague != null and openidVague != ''"> and t.openid like concat('%',#{openidVague},'%') </if>
+            <if test="expiresIn != null and expiresIn != ''"> and t.expires_in = #{expiresIn} </if>
+    		<if test="expiresInVague != null and expiresInVague != ''"> and t.expires_in like concat('%',#{expiresInVague},'%') </if>
+            <if test="refreshToken != null and refreshToken != ''"> and t.refresh_token = #{refreshToken} </if>
+    		<if test="refreshTokenVague != null and refreshTokenVague != ''"> and t.refresh_token like concat('%',#{refreshTokenVague},'%') </if>
+            <if test="scope != null and scope != ''"> and t.scope = #{scope} </if>
+    		<if test="scopeVague != null and scopeVague != ''"> and t.scope like concat('%',#{scopeVague},'%') </if>
+            <if test="unionid != null and unionid != ''"> and t.unionid = #{unionid} </if>
+    		<if test="unionidVague != null and unionidVague != ''"> and t.unionid like concat('%',#{unionidVague},'%') </if>
+            <if test="oauthConsumerKey != null and oauthConsumerKey != ''"> and t.oauth_consumer_key = #{oauthConsumerKey} </if>
+    		<if test="oauthConsumerKeyVague != null and oauthConsumerKeyVague != ''"> and t.oauth_consumer_key like concat('%',#{oauthConsumerKeyVague},'%') </if>
+            <if test="state != null and state != ''"> and t.state = #{state} </if>
+    		<if test="stateVague != null and stateVague != ''"> and t.state like concat('%',#{stateVague},'%') </if>
+            <if test="createTime != null and createTime != ''"> and t.create_time = #{createTime} </if>
+    		<if test="createTimeVague != null and createTimeVague != ''"> and t.create_time like concat('%',#{createTimeVague},'%') </if>
+            <if test="updateTime != null and updateTime != ''"> and t.update_time = #{updateTime} </if>
+    		<if test="updateTimeVague != null and updateTimeVague != ''"> and t.update_time like concat('%',#{updateTimeVague},'%') </if>
+        </where>
+    </sql>
+	 
+	<insert id="save" parameterType="xin.xiaoer.modules.sysusersns.entity.SysUserSns">
+		insert into sys_user_sns
+		(
+			`user_id`, 
+			`sns_type`,
+			`sns_user_id`,
+			`access_token`, 
+			`openid`, 
+			`expires_in`, 
+			`refresh_token`, 
+			`scope`, 
+			`unionid`, 
+			`oauth_consumer_key`, 
+			`state`,
+			`user_name`,
+			`gender`,
+			`avatar`,
+			`create_time`, 
+			`update_time`
+		)
+		values
+		(
+			#{userId}, 
+			#{snsType},
+			#{snsUserId},
+			#{accessToken}, 
+			#{openid}, 
+			#{expiresIn}, 
+			#{refreshToken}, 
+			#{scope}, 
+			#{unionid}, 
+			#{oauthConsumerKey}, 
+			#{state},
+			#{userName},
+			#{gender},
+			#{avatar},
+			NOW(),
+			NOW()
+		)
+	</insert>
+	 
+	<update id="update" parameterType="xin.xiaoer.modules.sysusersns.entity.SysUserSns">
+		update sys_user_sns 
+		<set>
+			<if test="snsType != null">`sns_type` = #{snsType}, </if>
+			<if test="snsUserId != null">`sns_user_id` = #{snsUserId}, </if>
+			<if test="accessToken != null">`access_token` = #{accessToken}, </if>
+			<if test="openid != null">`openid` = #{openid}, </if>
+			<if test="expiresIn != null">`expires_in` = #{expiresIn}, </if>
+			<if test="refreshToken != null">`refresh_token` = #{refreshToken}, </if>
+			<if test="scope != null">`scope` = #{scope}, </if>
+			<if test="unionid != null">`unionid` = #{unionid}, </if>
+			<if test="oauthConsumerKey != null">`oauth_consumer_key` = #{oauthConsumerKey}, </if>
+			<if test="state != null">`state` = #{state}, </if>
+			<if test="userName != null">`user_name` = #{userName}, </if>
+			<if test="gender != null">`gender` = #{gender}, </if>
+			<if test="avatar != null">`avatar` = #{avatar}, </if>
+			`update_time` = NOW()
+		</set>
+		where `sns_user_id` = #{snsUserId} AND `sns_type` = #{snsType}
+	</update>
+
+	<update id="updateUserId" parameterType="xin.xiaoer.modules.sysusersns.entity.SysUserSns">
+		update sys_user_sns
+		<set>
+			user_id = #{userId},
+			`update_time` = NOW()
+		</set>
+		where `sns_user_id` = #{snsUserId} AND `sns_type` = #{snsType}
+	</update>
+	
+	<delete id="delete">
+		delete from sys_user_sns where user_id = #{value}
+	</delete>
+
+	<delete id="deleteBySns">
+		delete from sys_user_sns where `sns_user_id` = #{snsUserId} AND `sns_type` = #{snsType}
+	</delete>
+
+	<delete id="deleteBatch">
+		delete from sys_user_sns where user_id in 
+		<foreach item="userId" collection="array" open="(" separator="," close=")">
+			#{userId}
+		</foreach>
+	</delete>
+
+	<select id="getBySnsUserId" resultType="xin.xiaoer.modules.sysusersns.entity.SysUserSns">
+		SELECT
+			*
+		FROM
+			sys_user_sns s
+		WHERE
+			1=1
+		<if test="openId != null and openId != '' and snsType != null and snsType != ''">
+			AND	s.sns_user_id = #{openId}
+			AND s.sns_type = #{snsType}
+		</if>
+		LIMIT 1
+	</select>
+
+</mapper>
